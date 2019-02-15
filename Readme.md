@@ -13,6 +13,10 @@
 
 # Usage
 
+Package available at crates.io: https://crates.io/crates/nut
+
+Documentation available at https://docs.rs/nut/0.1.0/nut/
+
 Usual way is to `cargo build --release` in console. Docs available via `cargo doc --no-deps --open`. Api is very similar to Bolt if you are familiar with it.
 
 # Examples
