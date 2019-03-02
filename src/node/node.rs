@@ -37,7 +37,7 @@ pub(crate) struct NodeInner {
 	pub(crate) children: RefCell<Vec<Node>>,
 
 	/// node's data
-	pub(crate) inodes: RefCell<Vec<Box<INode>>>,
+	pub(crate) inodes: RefCell<Vec<INode>>,
 }
 
 #[derive(Clone, Debug)]
@@ -563,7 +563,7 @@ impl Node {
 		};
 
 		if !exact {
-			inodes.insert(index, Box::new(INode::default()));
+			inodes.insert(index, INode::default());
 		}
 
 		let mut inode = &mut inodes[index];
@@ -667,27 +667,27 @@ impl Node {
 			},
 			Ordering::Release,
 		);
-		let mut inodes = Vec::<Box<INode>>::with_capacity(page.count as usize);
+		let mut inodes = Vec::<INode>::with_capacity(page.count as usize);
 		let is_leaf = self.is_leaf();
 
 		for i in 0..page.count as usize {
 			if is_leaf {
 				let elem = page.leaf_page_element(i);
-				let inode = Box::new(INode {
+				let inode = INode {
 					flags: elem.flags,
 					key: elem.key().to_vec(),
 					value: elem.value().to_vec(),
 					pgid: 0,
-				});
+				};
 				inodes.push(inode);
 			} else {
 				let elem = page.branch_page_element(i);
-				let inode = Box::new(INode {
+				let inode = INode {
 					flags: 0,
 					key: elem.key().to_vec(),
 					value: Vec::new(),
 					pgid: elem.pgid,
-				});
+				};
 				inodes.push(inode);
 			}
 		}

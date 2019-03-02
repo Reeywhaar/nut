@@ -99,7 +99,25 @@ impl Page {
 
 	#[allow(dead_code)]
 	pub(crate) fn data_mut(&mut self) -> PageData {
-		self.data()
+		let count = self.count as usize;
+		unsafe {
+			match self.flags {
+				Flags::BRANCHES => PageData::Branches(std::slice::from_raw_parts(
+					self.get_data_mut_ptr() as *mut BranchPageElement,
+					count,
+				)),
+				Flags::LEAVES => PageData::Leaves(std::slice::from_raw_parts(
+					self.get_data_mut_ptr() as *mut LeafPageElement,
+					count,
+				)),
+				Flags::META => PageData::Meta(&*(self.get_data_mut_ptr() as *mut Meta)),
+				Flags::FREELIST => PageData::Freelist(std::slice::from_raw_parts_mut(
+					self.get_data_mut_ptr() as *mut PGID,
+					count,
+				)),
+				_ => panic!("unknown flag"),
+			}
+		}
 	}
 
 	pub(crate) fn byte_size(&self) -> usize {

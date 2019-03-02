@@ -487,7 +487,7 @@ impl<'a> DB {
 			result
 		}));
 
-		if let Err(_) = result {
+		if result.is_err() {
 			tx.__rollback()?;
 			return Err("Panic while update".into());
 		}
@@ -522,7 +522,7 @@ impl<'a> DB {
 			result
 		}));
 
-		if let Err(_) = result {
+		if result.is_err() {
 			tx.__rollback()?;
 			return Err("Panic while update".into());
 		}
