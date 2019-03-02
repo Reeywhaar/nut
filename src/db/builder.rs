@@ -46,7 +46,7 @@ impl DBBuilder {
 			read_only: false,
 			initial_mmap_size: 0,
 			autoremove: false,
-			checkmode: CheckMode::No,
+			checkmode: CheckMode::NO,
 			max_batch_delay: DEFAULT_MAX_BATCH_DELAY,
 			max_batch_size: DEFAULT_MAX_BATCH_SIZE,
 		}

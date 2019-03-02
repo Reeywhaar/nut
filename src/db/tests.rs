@@ -6,7 +6,7 @@ pub(crate) fn db_mock<'a>() -> DBBuilder {
 	DBBuilder::new(temp_file())
 		.autoremove(true)
 		.read_only(false)
-		.checkmode(CheckMode::Paranoid)
+		.checkmode(CheckMode::PARANOID)
 }
 
 #[test]

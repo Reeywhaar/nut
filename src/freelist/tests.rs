@@ -9,7 +9,7 @@ fn free() {
 		let mut page = OwnedPage::new(1024);
 		page.id = 12;
 		page.overflow = 0;
-		page.flags = Flags::Freelist;
+		page.flags = Flags::FREELIST;
 		page
 	};
 	f.free(100, &page).unwrap();
@@ -23,7 +23,7 @@ fn free_overflow() {
 		let mut page = OwnedPage::new(1024);
 		page.id = 12;
 		page.overflow = 3;
-		page.flags = Flags::Freelist;
+		page.flags = Flags::FREELIST;
 		page
 	};
 	f.free(100, &page).unwrap();
@@ -37,7 +37,7 @@ fn release() {
 		let mut page = OwnedPage::new(1024);
 		page.id = 12;
 		page.overflow = 1;
-		page.flags = Flags::Freelist;
+		page.flags = Flags::FREELIST;
 		page
 	};
 	f.free(100, &page).unwrap();
@@ -45,7 +45,7 @@ fn release() {
 		let mut page = OwnedPage::new(1024);
 		page.id = 9;
 		page.overflow = 0;
-		page.flags = Flags::Freelist;
+		page.flags = Flags::FREELIST;
 		page
 	};
 	f.free(100, &page).unwrap();
@@ -53,7 +53,7 @@ fn release() {
 		let mut page = OwnedPage::new(1024);
 		page.id = 39;
 		page.overflow = 0;
-		page.flags = Flags::Freelist;
+		page.flags = Flags::FREELIST;
 		page
 	};
 	f.free(102, &page).unwrap();
@@ -99,7 +99,7 @@ fn read() {
 		let mut page = OwnedPage::new(1024);
 		page.id = 1;
 		page.overflow = 0;
-		page.flags = Flags::Freelist;
+		page.flags = Flags::FREELIST;
 		page
 	};
 	let ids: &[PGID] = &[23, 50];
@@ -123,7 +123,7 @@ fn write() {
 		let mut page = OwnedPage::new(1024);
 		page.id = 1;
 		page.overflow = 0;
-		page.flags = Flags::Freelist;
+		page.flags = Flags::FREELIST;
 		page
 	};
 

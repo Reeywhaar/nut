@@ -45,7 +45,7 @@ impl PageNode {
 
 	pub(crate) fn is_leaf(&self) -> bool {
 		match self.0 {
-			Either::Left(_) => self.get_page().flags == Flags::Leaves,
+			Either::Left(_) => self.get_page().flags == Flags::LEAVES,
 			Either::Right(ref n) => n.is_leaf(),
 		}
 	}

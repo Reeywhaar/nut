@@ -111,7 +111,7 @@ fn multiple_writers_multiple_readers() {
 	let mut db = db_mock()
 		// Strong because Paranoid check can fail in case
 		// of parallel read/write transaction on after read check
-		.checkmode(CheckMode::Strong)
+		.checkmode(CheckMode::STRONG)
 		// big initial mmap size to prevent read transaction block of re-mmap
 		.initial_mmap_size(4096 * 40)
 		.build()

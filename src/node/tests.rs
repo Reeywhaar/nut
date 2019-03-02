@@ -41,7 +41,7 @@ fn read_page() {
 		let mut page = OwnedPage::new(1024);
 		page.id = 1;
 		page.overflow = 0;
-		page.flags = Flags::Leaves;
+		page.flags = Flags::LEAVES;
 		page.count = 2;
 		page
 	};
@@ -98,28 +98,28 @@ fn write_page() {
 		b"susy",
 		b"que".to_vec(),
 		0,
-		Flags::Leaves.bits() as u32,
+		Flags::LEAVES.bits() as u32,
 	);
 	n.put(
 		b"ricki",
 		b"ricki",
 		b"lake".to_vec(),
 		0,
-		Flags::Leaves.bits() as u32,
+		Flags::LEAVES.bits() as u32,
 	);
 	n.put(
 		b"john",
 		b"john",
 		b"johnson".to_vec(),
 		0,
-		Flags::Leaves.bits() as u32,
+		Flags::LEAVES.bits() as u32,
 	);
 
 	let mut page = {
 		let mut page = OwnedPage::new(4096);
 		page.id = 1;
 		page.overflow = 0;
-		page.flags = Flags::Leaves;
+		page.flags = Flags::LEAVES;
 		page
 	};
 	n.write(&mut page);

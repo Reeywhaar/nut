@@ -29,10 +29,10 @@ impl<'a> PageData<'a> {
 	#[allow(dead_code)]
 	pub(crate) fn typ(&self) -> Flags {
 		match self {
-			PageData::Branches(_) => Flags::Branches,
-			PageData::Leaves(_) => Flags::Leaves,
-			PageData::Meta(_) => Flags::Meta,
-			PageData::Freelist(_) => Flags::Freelist,
+			PageData::Branches(_) => Flags::BRANCHES,
+			PageData::Leaves(_) => Flags::LEAVES,
+			PageData::Meta(_) => Flags::META,
+			PageData::Freelist(_) => Flags::FREELIST,
 		}
 	}
 

@@ -275,7 +275,7 @@ impl Tx {
 		let mut written = 0;
 
 		let mut page = OwnedPage::new(page_size);
-		page.flags = Flags::Meta;
+		page.flags = Flags::META;
 
 		// first page
 		{
@@ -407,7 +407,7 @@ impl Tx {
 			// If strict mode is enabled then perform a consistency check.
 			// Only the first consistency error is reported in the panic.
 			if self.0.check.swap(false, Ordering::AcqRel) {
-				let strict = db.0.check_mode.contains(CheckMode::Strict);
+				let strict = db.0.check_mode.contains(CheckMode::STRICT);
 				if let Err(e) = self.check_sync() {
 					if strict {
 						self.rollback()?;
@@ -454,7 +454,7 @@ impl Tx {
 	pub(crate) fn __rollback(&self) -> Result<(), Error> {
 		let db = self.db()?;
 		if self.0.check.swap(false, Ordering::AcqRel) {
-			let strict = db.0.check_mode.contains(CheckMode::Strict);
+			let strict = db.0.check_mode.contains(CheckMode::STRICT);
 			if let Err(e) = self.check_sync() {
 				if strict {
 					return Err(e);
@@ -591,7 +591,7 @@ impl Tx {
 			}
 
 			let page_type_is_valid = match p.flags {
-				Flags::Branches | Flags::Leaves => true,
+				Flags::BRANCHES | Flags::LEAVES => true,
 				_ => false,
 			};
 
@@ -734,7 +734,7 @@ impl Tx {
 
 		// Recursively loop over children.
 		let flags = p.flags;
-		if flags != Flags::Branches {
+		if flags != Flags::BRANCHES {
 			return;
 		}
 		let count = p.count as usize;
@@ -760,7 +760,7 @@ impl Tx {
 		let p = db.page(id as u64);
 		let mut info = PageInfo {
 			id: id as isize,
-			ptype: Flags::Freelist,
+			ptype: Flags::FREELIST,
 			count: p.count as usize,
 			overflow_count: p.overflow as usize,
 		};

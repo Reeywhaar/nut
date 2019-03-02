@@ -594,9 +594,9 @@ impl Node {
 	/// Writes the items onto one or more pages.
 	pub(crate) fn write(&self, p: &mut Page) {
 		if self.is_leaf() {
-			p.flags |= Flags::Leaves;
+			p.flags |= Flags::LEAVES;
 		} else {
-			p.flags |= Flags::Branches;
+			p.flags |= Flags::BRANCHES;
 		}
 
 		let inodes = self.0.inodes.borrow_mut();
@@ -662,7 +662,7 @@ impl Node {
 		*self.0.pgid.borrow_mut() = page.id;
 		self.0.is_leaf.store(
 			match page.flags {
-				Flags::Leaves => true,
+				Flags::LEAVES => true,
 				_ => false,
 			},
 			Ordering::Release,

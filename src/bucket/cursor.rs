@@ -50,8 +50,8 @@ impl<'a, B: Deref<Target = Bucket> + 'a> Cursor<'a, B> {
 		let page_node = self.bucket().page_node(pgid)?;
 		if let Either::Left(ref p) = page_node.upgrade() {
 			match p.flags {
-				Flags::Branches => (),
-				Flags::Leaves => (),
+				Flags::BRANCHES => (),
+				Flags::LEAVES => (),
 				_ => {
 					panic!(format!("invalid page type: {}: {}", p.id, p.flags));
 				}

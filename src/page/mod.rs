@@ -79,16 +79,16 @@ impl Page {
 		let count = self.count as usize;
 		unsafe {
 			match self.flags {
-				Flags::Branches => PageData::Branches(std::slice::from_raw_parts(
+				Flags::BRANCHES => PageData::Branches(std::slice::from_raw_parts(
 					self.get_data_ptr() as *const BranchPageElement,
 					count,
 				)),
-				Flags::Leaves => PageData::Leaves(std::slice::from_raw_parts(
+				Flags::LEAVES => PageData::Leaves(std::slice::from_raw_parts(
 					self.get_data_ptr() as *const LeafPageElement,
 					count,
 				)),
-				Flags::Meta => PageData::Meta(&*(self.get_data_ptr() as *const Meta)),
-				Flags::Freelist => PageData::Freelist(std::slice::from_raw_parts(
+				Flags::META => PageData::Meta(&*(self.get_data_ptr() as *const Meta)),
+				Flags::FREELIST => PageData::Freelist(std::slice::from_raw_parts(
 					self.get_data_ptr() as *const PGID,
 					count,
 				)),
@@ -137,19 +137,19 @@ impl Page {
 		match source {
 			PageData::Freelist(ref c) => {
 				self.count = c.len() as u16;
-				self.flags = Flags::Freelist;
+				self.flags = Flags::FREELIST;
 			}
 			PageData::Meta(_) => {
 				self.count = 0;
-				self.flags = Flags::Meta;
+				self.flags = Flags::META;
 			}
 			PageData::Leaves(ref c) => {
 				self.count = c.len() as u16;
-				self.flags = Flags::Leaves;
+				self.flags = Flags::LEAVES;
 			}
 			PageData::Branches(ref c) => {
 				self.count = c.len() as u16;
-				self.flags = Flags::Branches;
+				self.flags = Flags::BRANCHES;
 			}
 		}
 		unsafe {

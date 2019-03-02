@@ -29,25 +29,25 @@ bitflags! {
 	/// Defines when db check will occur
 	pub struct CheckMode: u8 {
 		/// no check
-		const No = 0b0000;
+		const NO = 0b0000;
 		/// check on database close
-		const Close = 0b0001;
+		const CLOSE = 0b0001;
 		/// check on end of read transaction
 		///
 		/// If there is parallel write transaction going on
 		/// check may fail because of old freelist metadata
-		const Read = 0b0010;
+		const READ = 0b0010;
 		/// check on end of write transaction
-		const Write = 0b0100;
+		const WRITE = 0b0100;
 		/// check on close, and end of every transaction
-		const All = 0b0111;
+		const ALL = 0b0111;
 		/// defines whether result of the check will result
 		/// in error or just be spewed in stdout
-		const Strict = 0b1000;
+		const STRICT = 0b1000;
 		/// check on close and writes and panic on error
-		const Strong = 0b1101;
+		const STRONG = 0b1101;
 		/// check everything and panic on error
-		const Paranoid = 0b1111;
+		const PARANOID = 0b1111;
 	}
 }
 
@@ -102,7 +102,7 @@ impl<'a> DB {
 			let mut buf = vec![0u8; 1000];
 			file.read_exact(&mut buf)?;
 			let page = Page::from_buf(&buf);
-			if page.flags != Flags::Meta {
+			if page.flags != Flags::META {
 				return Err("Database format unknown".into());
 			}
 			page.meta().page_size as usize
@@ -280,7 +280,7 @@ impl<'a> DB {
 		for i in 0..=1 {
 			let mut p = self.page_in_buffer(&mut buf, i);
 			p.id = i as u64;
-			p.flags = Flags::Meta;
+			p.flags = Flags::META;
 			let m = p.meta_mut();
 			m.magic = MAGIC;
 			m.version = VERSION;
@@ -298,11 +298,11 @@ impl<'a> DB {
 
 		let mut p = self.page_in_buffer(&mut buf, 2);
 		p.id = 2;
-		p.flags = Flags::Freelist;
+		p.flags = Flags::FREELIST;
 
 		let mut p = self.page_in_buffer(&mut buf, 3);
 		p.id = 3;
-		p.flags = Flags::Leaves;
+		p.flags = Flags::LEAVES;
 
 		self.write_at(0, std::io::Cursor::new(&mut buf))?;
 		self.sync()?;
@@ -329,8 +329,8 @@ impl<'a> DB {
 		if !self.0.opened.load(Ordering::Acquire) {
 			return Ok(());
 		}
-		if self.0.check_mode.contains(CheckMode::Close) {
-			let strict = self.0.check_mode.contains(CheckMode::Strict);
+		if self.0.check_mode.contains(CheckMode::CLOSE) {
+			let strict = self.0.check_mode.contains(CheckMode::STRICT);
 			let tx = self.begin_tx()?;
 			if let Err(e) = tx.check_sync() {
 				if strict {
@@ -397,7 +397,7 @@ impl<'a> DB {
 		let tx = TxBuilder::new()
 			.db(WeakDB::from(self))
 			.writable(false)
-			.check(self.0.check_mode.contains(CheckMode::Read))
+			.check(self.0.check_mode.contains(CheckMode::READ))
 			.build();
 
 		let mut txs = self.0.txs.write();
@@ -450,7 +450,7 @@ impl<'a> DB {
 		let tx = TxBuilder::new()
 			.db(WeakDB::from(self))
 			.writable(true)
-			.check(self.0.check_mode.contains(CheckMode::Write))
+			.check(self.0.check_mode.contains(CheckMode::WRITE))
 			.build();
 		*rw_tx = Some(tx.clone());
 		drop(rw_tx);

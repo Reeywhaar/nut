@@ -156,7 +156,7 @@ impl FreeList {
 	pub(crate) fn read(&mut self, p: &Page) {
 		assert_eq!(
 			p.flags,
-			Flags::Freelist,
+			Flags::FREELIST,
 			"freelist flags incorrect: {}",
 			p.flags.bits()
 		);
@@ -188,7 +188,7 @@ impl FreeList {
 		// The page.count can only hold up to 64k elements so if we overflow that
 		// number then we handle it by putting the size in the first element.
 		let lenids = self.count();
-		p.flags = Flags::Freelist;
+		p.flags = Flags::FREELIST;
 		if lenids == 0 {
 			p.count = lenids as u16;
 		} else if lenids < 0xFFFF {

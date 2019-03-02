@@ -12,14 +12,14 @@ fn new() {
 	page.id = 25;
 	assert_eq!(page.id, 25);
 
-	page.flags = Flags::Meta;
-	assert_eq!(page.flags, Flags::Meta);
+	page.flags = Flags::META;
+	assert_eq!(page.flags, Flags::META);
 }
 
 #[test]
 fn copy_data_from() {
 	let mut page = OwnedPage::new(1024);
-	page.flags = Flags::Freelist;
+	page.flags = Flags::FREELIST;
 	let ids: &[PGID] = &[23, 50];
 	page.copy_data_from(PageData::Freelist(&ids));
 
@@ -35,7 +35,7 @@ fn copy_data_from() {
 #[test]
 fn read_leaf_nodes() {
 	let mut page = OwnedPage::new(4096);
-	page.flags = Flags::Leaves;
+	page.flags = Flags::LEAVES;
 	page.count = 2;
 	let nodes =
 		unsafe { std::slice::from_raw_parts_mut(page.get_data_mut_ptr() as *mut LeafPageElement, 3) };
@@ -73,7 +73,7 @@ fn read_leaf_nodes() {
 fn to_owned() {
 	let mut buf = vec![0u8; 1024];
 	let mut page = Page::from_buf_mut(&mut buf);
-	page.flags = Flags::Leaves;
+	page.flags = Flags::LEAVES;
 	page.count = 2;
 	let nodes =
 		unsafe { std::slice::from_raw_parts_mut(page.get_data_mut_ptr() as *mut LeafPageElement, 3) };

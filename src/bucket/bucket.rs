@@ -505,7 +505,7 @@ impl Bucket {
 		};
 		self.for_each_page(Box::new(|p, depth| {
 			let page_count = p.count as usize;
-			if p.flags == Flags::Leaves {
+			if p.flags == Flags::LEAVES {
 				stats.key_n += page_count;
 				let mut used = Page::header_size();
 				if page_count != 0 {
@@ -540,7 +540,7 @@ impl Bucket {
 							};
 						}
 					}
-				} else if p.flags == Flags::Branches {
+				} else if p.flags == Flags::BRANCHES {
 					stats.branch_page_n += 1;
 					let last_element = p.branch_page_element(page_count - 1);
 
@@ -617,7 +617,7 @@ impl Bucket {
 		match item.upgrade() {
 			Either::Left(p) => {
 				let is_branch = match p.flags {
-					Flags::Branches => true,
+					Flags::BRANCHES => true,
 					_ => false,
 				};
 				if is_branch {

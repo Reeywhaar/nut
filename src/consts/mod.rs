@@ -33,23 +33,23 @@ bitflags! {
 	/// Defines type of the page
 	pub struct Flags: u16 {
 		/// Either branch or bucket page
-		const Branches = 0b00001;
+		const BRANCHES = 0b00001;
 		/// Leaf page
-		const Leaves = 0b00010;
+		const LEAVES = 0b00010;
 		/// Meta page
-		const Meta = 0b00100;
+		const META = 0b00100;
 		/// Freelist page
-		const Freelist = 0b10000;
+		const FREELIST = 0b10000;
 	}
 }
 
 impl fmt::Display for Flags {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		let d = match *self {
-			Flags::Branches => "branches".to_string(),
-			Flags::Leaves => "leaves".to_string(),
-			Flags::Meta => "meta".to_string(),
-			Flags::Freelist => "freelist".to_string(),
+			Flags::BRANCHES => "branches".to_string(),
+			Flags::LEAVES => "leaves".to_string(),
+			Flags::META => "meta".to_string(),
+			Flags::FREELIST => "freelist".to_string(),
 			_ => panic!("unknown flag"),
 		};
 		write!(f, "{}", d)
