@@ -47,7 +47,7 @@ pub(crate) struct TxInner {
 	pub(crate) stats: Mutex<TxStats>,
 
 	/// list of callbacks that will be called after commit
-	pub(crate) commit_handlers: Mutex<Vec<Box<Fn() -> ()>>>,
+	pub(crate) commit_handlers: Mutex<Vec<Box<dyn Fn() -> ()>>>,
 
 	/// WriteFlag specifies the flag for write-related methods like WriteTo().
 	/// Tx opens the database file with the specified flag to copy the data.
@@ -138,7 +138,7 @@ impl Tx {
 	}
 
 	/// Adds a handler function to be executed after the transaction successfully commits.
-	pub fn on_commit(&mut self, handler: Box<Fn() -> ()>) {
+	pub fn on_commit(&mut self, handler: Box<dyn Fn() -> ()>) {
 		self.0.commit_handlers.lock().push(handler);
 	}
 
