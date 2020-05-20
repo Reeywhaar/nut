@@ -1,6 +1,5 @@
 use fs2::FileExt;
 use lock_api::{RawMutex, RawRwLock};
-use page_size;
 use parking_lot::{MappedRwLockReadGuard, Mutex, RwLock, RwLockReadGuard};
 use std::fs::File;
 use std::fs::OpenOptions;

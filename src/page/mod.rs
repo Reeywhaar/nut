@@ -187,6 +187,7 @@ impl Page {
 	#[allow(dead_code)]
 	pub(crate) fn branch_page_elements_mut(&mut self) -> &mut [BranchPageElement] {
 		unsafe {
+			#[allow(clippy::cast_ref_to_mut)]
 			&mut *(self.branch_page_elements() as *const [BranchPageElement]
 				as *mut [BranchPageElement])
 		}
@@ -203,6 +204,7 @@ impl Page {
 	/// Retrieves the branch node by index
 	pub(crate) fn branch_page_element_mut(&mut self, index: usize) -> &mut BranchPageElement {
 		unsafe {
+			#[allow(clippy::cast_ref_to_mut)]
 			&mut *(self.branch_page_element(index) as *const BranchPageElement as *mut BranchPageElement)
 		}
 	}
@@ -219,6 +221,7 @@ impl Page {
 	#[allow(dead_code)]
 	pub(crate) fn leaf_page_elements_mut(&mut self) -> &mut [LeafPageElement] {
 		unsafe {
+			#[allow(clippy::cast_ref_to_mut)]
 			&mut *(self.leaf_page_elements() as *const [LeafPageElement] as *mut [LeafPageElement])
 		}
 	}
@@ -234,6 +237,7 @@ impl Page {
 	/// Retrieves the leaf node by index
 	pub(crate) fn leaf_page_element_mut(&mut self, index: usize) -> &mut LeafPageElement {
 		unsafe {
+			#[allow(clippy::cast_ref_to_mut)]
 			&mut *(self.leaf_page_element(index) as *const LeafPageElement as *mut LeafPageElement)
 		}
 	}
@@ -248,7 +252,10 @@ impl Page {
 
 	/// returns a pointer to the metadata section of the page.
 	pub(crate) fn meta_mut(&mut self) -> &mut Meta {
-		unsafe { &mut *(self.meta() as *const Meta as *mut Meta) }
+		unsafe {
+			#[allow(clippy::cast_ref_to_mut)]
+			&mut *(self.meta() as *const Meta as *mut Meta)
+		}
 	}
 
 	/// meta returns a pointer to the freelist section of the page.
@@ -261,7 +268,10 @@ impl Page {
 
 	/// meta returns a pointer to the freelist section of the page.
 	pub(crate) fn freelist_mut(&mut self) -> &mut [PGID] {
-		unsafe { &mut *(self.freelist() as *const [PGID] as *mut [PGID]) }
+		unsafe {
+			#[allow(clippy::cast_ref_to_mut)]
+			&mut *(self.freelist() as *const [PGID] as *mut [PGID])
+		}
 	}
 }
 

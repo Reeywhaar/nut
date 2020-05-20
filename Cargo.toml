@@ -13,7 +13,7 @@ name = "nut"
 [dependencies]
 fnv = "1.0.6"
 poolcache = "0.1.1"
-memoffset = "0.2.1"
+memoffset = "^0.5.4"
 fs2 = "0.4.3"
 page_size = "0.4.1"
 memmap = "0.7.0"

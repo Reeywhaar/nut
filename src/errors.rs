@@ -176,7 +176,7 @@ impl From<SystemTimeError> for Error {
 
 impl From<String> for Error {
 	fn from(e: String) -> Self {
-		Error::Unexpected(e.to_string())
+		Error::Unexpected(e)
 	}
 }
 

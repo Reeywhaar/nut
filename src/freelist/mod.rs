@@ -84,9 +84,9 @@ impl FreeList {
 			for i in 0..span {
 				self.cache.remove(&(pgid as u64 + i));
 			}
-			return pgid;
+			pgid
 		} else {
-			return 0;
+			0
 		}
 	}
 

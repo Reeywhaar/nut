@@ -42,7 +42,10 @@ impl<'a, B: Deref<Target = Bucket> + 'a> Cursor<'a, B> {
 
 	/// Returns mutable reference to bucket which is cursor created from
 	pub(crate) fn bucket_mut(&mut self) -> &mut Bucket {
-		unsafe { &mut *((&*self.bucket) as *const Bucket as *mut Bucket) }
+		unsafe {
+			#[allow(clippy::cast_ref_to_mut)]
+			&mut *((&*self.bucket) as *const Bucket as *mut Bucket)
+		}
 	}
 
 	/// Recursively performs a binary search against a given page/node until it finds a given key.
@@ -245,8 +248,7 @@ impl<'a, B: Deref<Target = Bucket> + 'a> Cursor<'a, B> {
 				.borrow()
 				.last()
 				.ok_or_else(|| "stack empty")?
-				.count()
-				== 0
+				.count() == 0
 		};
 
 		if is_empty {
@@ -382,8 +384,7 @@ impl<'a, B: Deref<Target = Bucket> + 'a> Cursor<'a, B> {
 				.borrow()
 				.last()
 				.ok_or_else(|| "stack empty")?
-				.count()
-				== 0
+				.count() == 0
 			{
 				continue;
 			}

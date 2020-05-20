@@ -178,7 +178,7 @@ fn dump(o: DumpOptions) -> Result<(), String> {
 		.map_err(|_| "Can't seek file")?;
 	file
 		.read_exact(&mut overflowbuf)
-		.map_err(|_| "Can't read file")?;;
+		.map_err(|_| "Can't read file")?;
 	let overflow = unsafe { *(&overflowbuf[0] as *const u8 as *const u32) };
 	let mut take = (u64::from(overflow) + 1) * u64::from(page_size);
 	if let Some(len) = o.len {
@@ -361,7 +361,7 @@ fn tree_writer<'a>(
 	key: &[u8],
 	bucket: Option<&Bucket>,
 ) -> Result<(), String> {
-	if bucket.is_some() {
+	if let Some(ubucket) = bucket {
 		let sanitized: String = key.to_vec().into_iter().map(sanitize_byte).collect();
 		writeln!(
 			&mut out,
@@ -371,11 +371,10 @@ fn tree_writer<'a>(
 		)
 		.map_err(|_| "Can't write output")?;
 
-		let bucket = bucket.unwrap();
-		let buckets = bucket.buckets();
+		let buckets = ubucket.buckets();
 
 		for b_name in buckets {
-			tree_writer(indent_level + 1, &mut out, &b_name, bucket.bucket(&b_name))?;
+			tree_writer(indent_level + 1, &mut out, &b_name, ubucket.bucket(&b_name))?;
 		}
 	};
 
