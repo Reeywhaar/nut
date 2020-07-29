@@ -89,7 +89,7 @@ impl<'a> DB {
 		let needs_initialization = (!std::path::Path::new(path.as_ref().unwrap()).exists())
 			|| file.metadata().map_err(|_| "Can't read metadata")?.len() == 0;
 
-		if options.read_only {
+		if !options.read_only {
 			file.lock_exclusive().map_err(|_e| "Cannot lock db file")?;
 		} else {
 			file.lock_shared().map_err(|_e| "Cannot lock db file")?;
