@@ -165,7 +165,7 @@ impl Node {
 			}
 
 			let fp = clamp(
-				self.bucket().ok_or_else(|| "bucket empty")?.fill_percent,
+				self.bucket().ok_or("bucket empty")?.fill_percent,
 				Bucket::MIN_FILL_PERCENT,
 				Bucket::MAX_FILL_PERCENT,
 			);
@@ -183,7 +183,7 @@ impl Node {
 
 		self
 			.bucket_mut()
-			.ok_or_else(|| "bucket empty")?
+			.ok_or("bucket empty")?
 			.tx()?
 			.0
 			.stats
@@ -250,7 +250,7 @@ impl Node {
 					let id = page.id;
 					let txpgid = tx.pgid();
 					if id >= txpgid {
-						panic!(format!("pgid ({}) above high water mark ({})", id, txid))
+						panic!("pgid ({}) above high water mark ({})", id, txid)
 					}
 					*node.0.pgid.borrow_mut() = id;
 					node.write(&mut page);
@@ -546,10 +546,7 @@ impl Node {
 		let meta_pgid = self.bucket().unwrap().tx().unwrap().pgid();
 
 		if pgid >= meta_pgid {
-			panic!(format!(
-				"pgid ({}) above high water mark ({})",
-				pgid, meta_pgid
-			));
+			panic!("pgid ({}) above high water mark ({})", pgid, meta_pgid);
 		} else if old_key.is_empty() {
 			panic!("put: zero-length old key")
 		} else if new_key.is_empty() {
@@ -602,7 +599,7 @@ impl Node {
 		let inodes = self.0.inodes.borrow_mut();
 
 		if inodes.len() >= 0xFFFF {
-			panic!(format!("inode overflow: {} (pgid={})", inodes.len(), p.id));
+			panic!("inode overflow: {} (pgid={})", inodes.len(), p.id);
 		}
 
 		p.count = inodes.len() as u16;
@@ -660,13 +657,10 @@ impl Node {
 	/// Initializes the node from a page.
 	pub(crate) fn read(&mut self, page: &Page) {
 		*self.0.pgid.borrow_mut() = page.id;
-		self.0.is_leaf.store(
-			match page.flags {
-				Flags::LEAVES => true,
-				_ => false,
-			},
-			Ordering::Release,
-		);
+		self
+			.0
+			.is_leaf
+			.store(matches!(page.flags, Flags::LEAVES), Ordering::Release);
 		let mut inodes = Vec::<INode>::with_capacity(page.count as usize);
 		let is_leaf = self.is_leaf();
 

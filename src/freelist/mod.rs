@@ -63,7 +63,7 @@ impl FreeList {
 			m.extend_from_slice(&list);
 		}
 		m.extend_from_slice(&self.ids);
-		m.sort();
+		m.sort_unstable();
 		m
 	}
 
@@ -77,7 +77,7 @@ impl FreeList {
 		if let Some(index) = find_contiguous(&self.ids, span as usize) {
 			let pgid = self.ids[index];
 			if pgid <= 1 {
-				panic!(format!("invalid page allocation: {}", pgid));
+				panic!("invalid page allocation: {}", pgid);
 			};
 			self.ids.drain(index..index + span as usize);
 			// Remove from the free cache.
@@ -98,7 +98,7 @@ impl FreeList {
 		}
 
 		// Free page and all its overflow pages.
-		let ids = self.pending.entry(txid).or_insert_with(|| vec![]);
+		let ids = self.pending.entry(txid).or_insert_with(Vec::new);
 		let max = p.id + u64::from(p.overflow);
 		for id in p.id..=max {
 			// Verify that page is not already free.
@@ -130,7 +130,7 @@ impl FreeList {
 			self.pending.remove(tid);
 		}
 
-		m.sort();
+		m.sort_unstable();
 		self.ids = merge_pgids(self.ids.as_slice(), &m.as_slice());
 	}
 
@@ -173,7 +173,7 @@ impl FreeList {
 		} else {
 			let ids = p.freelist();
 			self.ids = ids[idx..count].to_vec();
-			self.ids.sort();
+			self.ids.sort_unstable();
 		}
 
 		self.reindex();

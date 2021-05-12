@@ -346,7 +346,7 @@ impl<'a> DB {
 			.0
 			.file
 			.try_read()
-			.ok_or_else(|| "Can't acquire file lock")?
+			.ok_or("Can't acquire file lock")?
 			.get_ref()
 			.unlock()
 			.map_err(|_| "Can't unlock db file")?;
@@ -443,7 +443,7 @@ impl<'a> DB {
 			.iter()
 			.map(|tx| tx.id())
 			.min()
-			.unwrap_or_else(|| 0xFFFF_FFFF_FFFF_FFFF);
+			.unwrap_or(0xFFFF_FFFF_FFFF_FFFF);
 		drop(txs);
 
 		let tx = TxBuilder::new()
@@ -599,12 +599,12 @@ impl<'a> DB {
 			.0
 			.file
 			.try_read_for(Duration::from_secs(60))
-			.ok_or_else(|| "can't acquire file lock")?;
+			.ok_or("can't acquire file lock")?;
 		let mut mmap = self
 			.0
 			.mmap
 			.try_write_for(Duration::from_secs(600))
-			.ok_or_else(|| "can't acquire mmap lock")?;
+			.ok_or("can't acquire mmap lock")?;
 
 		let init_min_size = self.0.page_size as u64 * 4;
 

@@ -47,7 +47,7 @@ pub(crate) struct TxInner {
 	pub(crate) stats: Mutex<TxStats>,
 
 	/// list of callbacks that will be called after commit
-	pub(crate) commit_handlers: Mutex<Vec<Box<dyn Fn() -> ()>>>,
+	pub(crate) commit_handlers: Mutex<Vec<Box<dyn Fn()>>>,
 
 	/// WriteFlag specifies the flag for write-related methods like WriteTo().
 	/// Tx opens the database file with the specified flag to copy the data.
@@ -118,7 +118,7 @@ impl Tx {
 			.try_read()
 			.unwrap()
 			.upgrade()
-			.ok_or_else(|| Error::DatabaseGone)
+			.ok_or(Error::DatabaseGone)
 	}
 
 	/// Returns the transaction id.
@@ -133,12 +133,12 @@ impl Tx {
 
 	/// Returns the transaction page id.
 	pub(crate) fn set_pgid(&mut self, id: PGID) -> Result<(), Error> {
-		self.0.meta.try_write().ok_or_else(|| "pgid locked")?.pgid = id;
+		self.0.meta.try_write().ok_or("pgid locked")?.pgid = id;
 		Ok(())
 	}
 
 	/// Adds a handler function to be executed after the transaction successfully commits.
-	pub fn on_commit(&mut self, handler: Box<dyn Fn() -> ()>) {
+	pub fn on_commit(&mut self, handler: Box<dyn Fn()>) {
 		self.0.commit_handlers.lock().push(handler);
 	}
 
@@ -166,11 +166,7 @@ impl Tx {
 	/// Returns None if the bucket does not exist.
 	/// The bucket instance is only valid for the lifetime of the transaction.
 	pub fn bucket(&self, key: &[u8]) -> Result<MappedRwLockReadGuard<Bucket>, Error> {
-		let bucket = self
-			.0
-			.root
-			.try_read()
-			.ok_or_else(|| "Can't acquire bucket")?;
+		let bucket = self.0.root.try_read().ok_or("Can't acquire bucket")?;
 
 		RwLockReadGuard::try_map(bucket, |b| b.bucket(key)).map_err(|_| "Can't get bucket".into())
 	}
@@ -183,11 +179,7 @@ impl Tx {
 			return Err(Error::TxReadonly);
 		};
 
-		let bucket = self
-			.0
-			.root
-			.try_write()
-			.ok_or_else(|| "Can't acquire bucket")?;
+		let bucket = self.0.root.try_write().ok_or("Can't acquire bucket")?;
 
 		RwLockWriteGuard::try_map(bucket, |b| b.bucket_mut(key)).map_err(|_| "Can't get bucket".into())
 	}
@@ -205,11 +197,7 @@ impl Tx {
 			return Err(Error::TxReadonly);
 		};
 
-		let bucket = self
-			.0
-			.root
-			.try_write()
-			.ok_or_else(|| "Can't acquire bucket")?;
+		let bucket = self.0.root.try_write().ok_or("Can't acquire bucket")?;
 
 		RwLockWriteGuard::try_map(bucket, |b| b.create_bucket(key).ok())
 			.map_err(|_| "Can't get bucket".into())
@@ -226,11 +214,7 @@ impl Tx {
 			return Err(Error::TxReadonly);
 		};
 
-		let bucket = self
-			.0
-			.root
-			.try_write()
-			.ok_or_else(|| "Can't acquire bucket")?;
+		let bucket = self.0.root.try_write().ok_or("Can't acquire bucket")?;
 
 		RwLockWriteGuard::try_map(bucket, |b| b.create_bucket_if_not_exists(key).ok())
 			.map_err(|_| "Can't get bucket".into())
@@ -270,7 +254,7 @@ impl Tx {
 			.0
 			.file
 			.try_write()
-			.ok_or_else(|| "can't obtain file write access")?;
+			.ok_or("can't obtain file write access")?;
 
 		let mut written = 0;
 
@@ -590,10 +574,7 @@ impl Tx {
 				reachable.insert(id, true);
 			}
 
-			let page_type_is_valid = match p.flags {
-				Flags::BRANCHES | Flags::LEAVES => true,
-				_ => false,
-			};
+			let page_type_is_valid = matches!(p.flags, Flags::BRANCHES | Flags::LEAVES);
 
 			if freed.contains_key(&p.id) {
 				ch.send(format!("page {}: reachable freed", p.id)).unwrap();

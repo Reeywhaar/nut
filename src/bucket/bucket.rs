@@ -83,7 +83,7 @@ impl Bucket {
 
 	// Returns transaction
 	pub fn tx(&self) -> Result<Tx, Error> {
-		self.tx.upgrade().ok_or_else(|| Error::TxGone)
+		self.tx.upgrade().ok_or(Error::TxGone)
 	}
 
 	// Returns database
@@ -279,7 +279,7 @@ impl Bucket {
 		let mut c = self.cursor()?;
 		{
 			let item = c.seek(key)?;
-			if item.key.as_ref().map(|v| &**v).unwrap() != key {
+			if item.key.as_deref().map(|v| &*v).unwrap() != key {
 				return Err(Error::BucketNotFound);
 			}
 			if !item.is_bucket() {
@@ -288,7 +288,7 @@ impl Bucket {
 		}
 		let mut node = c.node()?;
 		{
-			let child = self.bucket_mut(key).ok_or_else(|| "Can't get bucket")?;
+			let child = self.bucket_mut(key).ok_or("Can't get bucket")?;
 			let child_buckets = child.buckets();
 
 			for bucket in &child_buckets {
@@ -616,10 +616,7 @@ impl Bucket {
 		// Recursively loop over children.
 		match item.upgrade() {
 			Either::Left(p) => {
-				let is_branch = match p.flags {
-					Flags::BRANCHES => true,
-					_ => false,
-				};
+				let is_branch = matches!(p.flags, Flags::BRANCHES);
 				if is_branch {
 					for i in 0..p.count as usize {
 						let elem = p.branch_page_element(i);
@@ -690,11 +687,7 @@ impl Bucket {
 
 		{
 			// Spill nodes.
-			let mut root_node = self
-				.root_node
-				.clone()
-				.ok_or_else(|| "root node empty")?
-				.root();
+			let mut root_node = self.root_node.clone().ok_or("root node empty")?.root();
 			root_node.spill()?;
 			self.root_node = Some(root_node);
 
@@ -703,10 +696,7 @@ impl Bucket {
 
 			// Update the root node for this bucket.
 			if pgid >= txpgid as u64 {
-				panic!(format!(
-					"pgid ({}) above high water mark ({})",
-					pgid, txpgid
-				));
+				panic!("pgid ({}) above high water mark ({})", pgid, txpgid);
 			}
 
 			self.bucket.root = pgid;
@@ -843,7 +833,7 @@ impl Bucket {
 				return Ok(PageNode::from(node.clone()));
 			}
 			return Ok(PageNode::from(
-				&**self.page.as_ref().ok_or_else(|| "page empty")? as *const Page,
+				&**self.page.as_ref().ok_or("page empty")? as *const Page
 			));
 		}
 

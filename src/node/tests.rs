@@ -70,7 +70,8 @@ fn read_page() {
 
 	assert!(
 		std::mem::size_of::<LeafPageElement>() == 16,
-		format!("{}", std::mem::size_of::<LeafPageElement>())
+		"{}",
+		std::mem::size_of::<LeafPageElement>()
 	);
 
 	let tx = tx_mock();

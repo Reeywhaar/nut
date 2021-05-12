@@ -388,6 +388,6 @@ pub(crate) fn merge_pgids(a: &[PGID], b: &[PGID]) -> Vec<PGID> {
 	let mut dst = Vec::with_capacity(a.len() + b.len());
 	dst.extend(a);
 	dst.extend(b);
-	dst.sort();
+	dst.sort_unstable();
 	dst
 }
