@@ -24,7 +24,7 @@ fn open_existing() {
 		.read_only(true)
 		.build()
 		.unwrap();
-	assert_eq!(db.page_size(), page_size::get());
+	assert_eq!(db.page_size(), 4096);
 	assert_eq!(db.meta().unwrap().version, 2);
 	assert_eq!(db.meta().unwrap().magic, MAGIC);
 	assert_eq!(db.meta().unwrap().root.root, 9);
