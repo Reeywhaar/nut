@@ -7,20 +7,20 @@ use crate::consts::PGID;
 #[derive(Clone, Debug)]
 #[repr(C)]
 pub struct IBucket {
-	/// page id of the bucket's root-level page
-	pub root: PGID,
+    /// page id of the bucket's root-level page
+    pub root: PGID,
 
-	/// monotonically incrementing, used by next_sequence()
-	pub sequence: u64,
+    /// monotonically incrementing, used by next_sequence()
+    pub sequence: u64,
 }
 
 impl IBucket {
-	pub(crate) const SIZE: usize = std::mem::size_of::<Self>();
+    pub(crate) const SIZE: usize = std::mem::size_of::<Self>();
 
-	pub(crate) fn new() -> IBucket {
-		IBucket {
-			root: 0,
-			sequence: 0,
-		}
-	}
+    pub(crate) fn new() -> IBucket {
+        IBucket {
+            root: 0,
+            sequence: 0,
+        }
+    }
 }

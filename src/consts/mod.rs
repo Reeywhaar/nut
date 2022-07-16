@@ -32,28 +32,28 @@ pub(crate) const DEFAULT_MAX_BATCH_DELAY: Duration = Duration::from_millis(10000
 // pub(crate) const DEFAULT_ALLOC_SIZE: u64 = 16 * 1024 * 1024;
 
 bitflags! {
-	/// Defines type of the page
-	pub struct Flags: u16 {
-		/// Either branch or bucket page
-		const BRANCHES = 0b00001;
-		/// Leaf page
-		const LEAVES = 0b00010;
-		/// Meta page
-		const META = 0b00100;
-		/// Freelist page
-		const FREELIST = 0b10000;
-	}
+    /// Defines type of the page
+    pub struct Flags: u16 {
+        /// Either branch or bucket page
+        const BRANCHES = 0b00001;
+        /// Leaf page
+        const LEAVES = 0b00010;
+        /// Meta page
+        const META = 0b00100;
+        /// Freelist page
+        const FREELIST = 0b10000;
+    }
 }
 
 impl fmt::Display for Flags {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		let d = match *self {
-			Flags::BRANCHES => "branches".to_string(),
-			Flags::LEAVES => "leaves".to_string(),
-			Flags::META => "meta".to_string(),
-			Flags::FREELIST => "freelist".to_string(),
-			_ => panic!("unknown flag"),
-		};
-		write!(f, "{}", d)
-	}
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let d = match *self {
+            Flags::BRANCHES => "branches".to_string(),
+            Flags::LEAVES => "leaves".to_string(),
+            Flags::META => "meta".to_string(),
+            Flags::FREELIST => "freelist".to_string(),
+            _ => panic!("unknown flag"),
+        };
+        write!(f, "{}", d)
+    }
 }

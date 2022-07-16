@@ -10,17 +10,17 @@ use std::ops::{Deref, DerefMut};
 ///
 /// Implements Deref to Tx
 pub struct TxGuard<'a> {
-	pub(crate) tx: Tx,
-	pub(crate) db: PhantomData<&'a DB>,
+    pub(crate) tx: Tx,
+    pub(crate) db: PhantomData<&'a DB>,
 }
 
 impl<'a> Deref for TxGuard<'a> {
-	type Target = Tx;
+    type Target = Tx;
 
-	#[inline]
-	fn deref(&self) -> &Self::Target {
-		&self.tx
-	}
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.tx
+    }
 }
 
 /// Guard returned by DB.begin_rw_tx()
@@ -29,22 +29,22 @@ impl<'a> Deref for TxGuard<'a> {
 ///
 /// Implements Deref and DerefMut to Tx
 pub struct RWTxGuard<'a> {
-	pub(crate) tx: Tx,
-	pub(crate) db: PhantomData<&'a mut DB>,
+    pub(crate) tx: Tx,
+    pub(crate) db: PhantomData<&'a mut DB>,
 }
 
 impl<'a> Deref for RWTxGuard<'a> {
-	type Target = Tx;
+    type Target = Tx;
 
-	#[inline]
-	fn deref(&self) -> &Self::Target {
-		&self.tx
-	}
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.tx
+    }
 }
 
 impl<'a> DerefMut for RWTxGuard<'a> {
-	#[inline]
-	fn deref_mut(&mut self) -> &mut Self::Target {
-		&mut self.tx
-	}
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.tx
+    }
 }
