@@ -96,7 +96,7 @@ impl<'a> DB {
         };
 
         let page_size = if needs_initialization {
-            page_size::get()
+            options.page_size
         } else {
             let mut buf = vec![0u8; 1000];
             file.read_exact(&mut buf)?;

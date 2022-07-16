@@ -14,6 +14,7 @@ pub(super) struct Options {
     pub(super) checkmode: CheckMode,
     pub(super) max_batch_delay: Duration,
     pub(super) max_batch_size: usize,
+    pub(super) page_size: usize,
 }
 
 /// Struct to construct database
@@ -34,6 +35,7 @@ pub struct DBBuilder {
     checkmode: CheckMode,
     max_batch_delay: Duration,
     max_batch_size: usize,
+    page_size: usize,
 }
 
 impl DBBuilder {
@@ -49,6 +51,7 @@ impl DBBuilder {
             checkmode: CheckMode::NO,
             max_batch_delay: DEFAULT_MAX_BATCH_DELAY,
             max_batch_size: DEFAULT_MAX_BATCH_SIZE,
+            page_size: page_size::get(),
         }
     }
 
@@ -128,6 +131,15 @@ impl DBBuilder {
         self
     }
 
+    /// Defines page size to initialize db with.
+    /// When opening existing db its page size will be used.
+    ///
+    /// Default: page size defined by OS
+    pub fn page_size(mut self, v: usize) -> Self {
+        self.page_size = v;
+        self
+    }
+
     /// Builds and returns DB instance
     pub fn build(self) -> Result<DB, Error> {
         let options = Options {
@@ -138,6 +150,7 @@ impl DBBuilder {
             checkmode: self.checkmode,
             max_batch_delay: self.max_batch_delay,
             max_batch_size: self.max_batch_size,
+            page_size: self.page_size,
         };
         DB::open(self.path, options)
     }
