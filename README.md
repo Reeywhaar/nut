@@ -65,6 +65,8 @@ let mut tx = db.begin_rw_tx().unwrap();
 tx.rollback().unwrap();
 ```
 
+**Note:** All buckets obtained from transaction should be dropped before calling either `rollback` or `commit`.
+
 ### Getting data back
 
 ```
