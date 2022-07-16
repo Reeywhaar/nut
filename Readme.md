@@ -2,14 +2,16 @@
 
 #### Port of [Bolt DB](https://github.com/boltdb/bolt) in Rust
 
-* **Compatible with Bolt's database format** and provides similar api.
+- **Compatible with Bolt's database format** and provides similar api.
 
-  *Since Nut supports same format as Bolt there are known issues:*
-	* Bolt uses Memmap to operate, there is no LRU or other cache, so if database doesn't fit in memory, then it's end of game, Nut will inevitably crash.
-	* Data structures are written directly onto disk. No serialization takes place, so Nut doesn't understand db file from computer with different Endianness, for example.
-* **Transaction based**. In case of error transaction will be rolled back.
-* **Multiple readers, single writer.**
-	Nut works just like Bolt: you can have one writer and multiple readers at a time, just be sure they run on different threads. Making writer and reader transaction in same thread will cause deadlock. Writer can write freely if memory map is have enough free pages, in other case it will be waiting for reading transactions to close.
+  _Since Nut supports same format as Bolt there are known issues:_
+
+  - Bolt uses Memmap to operate, there is no LRU or other cache, so if database doesn't fit in memory, then it's end of game, Nut will inevitably crash.
+  - Data structures are written directly onto disk. No serialization takes place, so Nut doesn't understand db file from computer with different Endianness, for example.
+
+- **Transaction based**. In case of error transaction will be rolled back.
+- **Multiple readers, single writer.**
+  Nut works just like Bolt: you can have one writer and multiple readers at a time, just be sure they run on different threads. Making writer and reader transaction in same thread will cause deadlock. Writer can write freely if memory map is have enough free pages, in other case it will be waiting for reading transactions to close.
 
 # Usage
 
@@ -139,6 +141,6 @@ SUBCOMMANDS:
 
 I'm not planning to actively mantain this project since it just a hobby project to check out Rust, and there are better alternatives in terms of performance.
 
--------
+---
 
 MIT License
