@@ -19,6 +19,12 @@ fn open() {
 }
 
 #[test]
+fn open_with_page_size() {
+    let db = db_mock().page_size(4096).build().unwrap();
+    assert_eq!(db.page_size(), 4096);
+}
+
+#[test]
 fn open_existing() {
     let db = DBBuilder::new("./test_data/remark.db")
         .read_only(true)
