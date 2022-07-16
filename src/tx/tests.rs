@@ -96,7 +96,7 @@ fn delete_bucket() {
 ///ensure that writes produce idempotent file
 fn commit_hash_ensure() {
     for _ in 0..20 {
-        let mut db = db_mock().autoremove(true).build().unwrap();
+        let mut db = db_mock().page_size(4096).autoremove(true).build().unwrap();
         let mut tx = db.begin_rw_tx().unwrap();
         {
             let mut bucket = tx.create_bucket(b"bucket").unwrap();
