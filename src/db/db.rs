@@ -107,8 +107,22 @@ impl<'a> DB {
             page.meta().page_size as usize
         };
 
-        file.allocate(page_size as u64 * 4)
-            .map_err(|_e| "Cannot allocate 4 required pages")?;
+        let minimal_file_size = page_size as u64 * 4;
+        if options.read_only {
+            let size = file
+                .allocated_size()
+                .map_err(|_e| "Cannot get file allocated size")?;
+            if size < minimal_file_size {
+                return Err(format!(
+                    "Minimal file size {} is less than required: {}",
+                    size, minimal_file_size
+                )
+                .into());
+            }
+        } else {
+            file.allocate(minimal_file_size)
+                .map_err(|_e| "Cannot allocate 4 required pages")?;
+        }
 
         let mmap = unsafe {
             memmap::MmapOptions::new()
@@ -620,9 +634,11 @@ impl<'a> DB {
 
         let mut mmap_size = self.0.mmap_size.lock();
 
-        file.get_ref()
-            .allocate(size)
-            .map_err(|_| "can't allocate space")?;
+        if !self.read_only() {
+            file.get_ref()
+                .allocate(size)
+                .map_err(|e| format!("Can't allocate space: {}", e))?;
+        }
 
         // TODO: madvise
         let mut mmap_opts = memmap::MmapOptions::new();
