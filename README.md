@@ -25,7 +25,7 @@ Usual way is to `cargo build --release` in console. Docs available via `cargo do
 
 ### Create db and put something
 
-```
+```rust
 use nut::DBBuilder;
 
 let mut db = DBBuilder::new("test.db").build().unwrap();
@@ -69,7 +69,7 @@ tx.rollback().unwrap();
 
 ### Getting data back
 
-```
+```rust
 use nut::DBBuilder;
 
 let mut db = DBBuilder::new("test.db").build().unwrap();
@@ -89,7 +89,7 @@ assert_eq!(
 
 ### Getting available buckets
 
-```
+```rust
 use nut::DBBuilder;
 
 let mut db = DBBuilder::new("test.db").build().unwrap();
@@ -122,7 +122,7 @@ Crate also provides `nut` binary which is helpful to inspect database file in va
 
 Excerpt from man:
 
-```
+```bash
 USAGE:
     nut [SUBCOMMAND]
 
