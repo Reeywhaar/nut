@@ -44,6 +44,7 @@ impl<'a, B: Deref<Target = Bucket> + 'a> Cursor<'a, B> {
     pub(crate) fn bucket_mut(&mut self) -> &mut Bucket {
         unsafe {
             #[allow(clippy::cast_ref_to_mut)]
+            #[allow(invalid_reference_casting)]
             &mut *((&*self.bucket) as *const Bucket as *mut Bucket)
         }
     }
