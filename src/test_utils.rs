@@ -1,13 +1,12 @@
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use std::env::temp_dir;
-use std::iter;
 use std::path::PathBuf;
 
 pub(crate) fn random_string(len: usize) -> String {
-    let mut rng = thread_rng();
-    iter::repeat(())
-        .map(|()| rng.sample(Alphanumeric))
+    thread_rng()
+        .sample_iter(&Alphanumeric)
         .take(len)
+        .map(char::from)
         .collect::<String>()
 }
 

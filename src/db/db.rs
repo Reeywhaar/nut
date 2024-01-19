@@ -26,6 +26,7 @@ use super::{RWTxGuard, TxGuard};
 
 bitflags! {
     /// Defines when db check will occur
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct CheckMode: u8 {
         /// no check
         const NO = 0b0000;
@@ -61,7 +62,7 @@ pub(crate) struct DBInner {
     pub(super) path: Option<PathBuf>,
     pub(crate) file: RwLock<BufWriter<File>>,
     pub(super) mmap_size: Mutex<usize>,
-    pub(super) mmap: RwLock<memmap::Mmap>,
+    pub(super) mmap: RwLock<memmap2::Mmap>,
     pub(super) file_size: RwLock<u64>,
     page_size: usize,
     opened: AtomicBool,
@@ -125,7 +126,7 @@ impl<'a> DB {
         }
 
         let mmap = unsafe {
-            memmap::MmapOptions::new()
+            memmap2::MmapOptions::new()
                 .offset(0)
                 .len(page_size)
                 .map(&file)
@@ -641,7 +642,7 @@ impl<'a> DB {
         }
 
         // TODO: madvise
-        let mut mmap_opts = memmap::MmapOptions::new();
+        let mut mmap_opts = memmap2::MmapOptions::new();
         let nmmap = unsafe {
             mmap_opts
                 .offset(0)
