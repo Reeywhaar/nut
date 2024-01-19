@@ -133,7 +133,7 @@ fn commit_ensure() {
             bucket.put(b"thomas", b"jefferson".to_vec()).unwrap();
         }
         tx.commit().unwrap();
-        db.path().unwrap()
+        db.path().to_owned()
     };
 
     let db = DBBuilder::new(path)

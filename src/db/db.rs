@@ -58,7 +58,7 @@ pub(crate) struct DBInner {
     pub(super) max_batch_delay: Duration,
     pub(super) autoremove: bool,
     pub(super) alloc_size: u64,
-    pub(super) path: Option<PathBuf>,
+    pub(super) path: PathBuf,
     pub(crate) file: RwLock<BufWriter<File>>,
     pub(super) mmap_size: Mutex<usize>,
     pub(super) mmap: RwLock<memmap::Mmap>,
@@ -82,12 +82,12 @@ pub struct DB(pub(crate) Arc<DBInner>);
 impl<'a> DB {
     pub(super) fn open_file<P: Into<PathBuf>>(
         mut file: File,
-        path: Option<P>,
+        path: P,
         options: Options,
     ) -> Result<Self, Error> {
-        let path = path.map(|v| v.into());
-        let needs_initialization = (!std::path::Path::new(path.as_ref().unwrap()).exists())
-            || file.metadata().map_err(|_| "Can't read metadata")?.len() == 0;
+        let path = path.into();
+        let needs_initialization =
+            (!path.exists()) || file.metadata().map_err(|_| "Can't read metadata")?.len() == 0;
 
         if !options.read_only {
             file.lock_exclusive().map_err(|_e| "Cannot lock db file")?;
@@ -174,7 +174,6 @@ impl<'a> DB {
     }
 
     pub(super) fn open<P: AsRef<Path>>(path: P, options: Options) -> Result<Self, Error> {
-        let path = path.as_ref().to_owned();
         let file = {
             let mut open_opts = OpenOptions::new();
             open_opts.read(true);
@@ -184,7 +183,7 @@ impl<'a> DB {
             open_opts.open(&path).map_err(|e| format!("{}", e))?
         };
 
-        DB::open_file(file, Some(path), options)
+        DB::open_file(file, path.as_ref(), options)
     }
 
     /// Returns meta info for given path
@@ -324,10 +323,9 @@ impl<'a> DB {
             return Ok(());
         }
         self.cleanup()?;
-        if let Some(path) = &self.0.path {
-            if path.exists() {
-                std::fs::remove_file(path).map_err(|_| "Can't remove file")?;
-            }
+
+        if self.0.path.exists() {
+            std::fs::remove_file(&self.0.path).map_err(|_| "Can't remove file")?;
         }
 
         Ok(())
@@ -359,18 +357,16 @@ impl<'a> DB {
             .unlock()
             .map_err(|_| "Can't unlock db file")?;
         if self.0.autoremove {
-            if let Some(path) = &self.0.path {
-                if path.exists() {
-                    std::fs::remove_file(path).map_err(|_| "Can't remove file")?;
-                }
+            if self.0.path.exists() {
+                std::fs::remove_file(&self.0.path).map_err(|_| "Can't remove file")?;
             }
         }
         Ok(())
     }
 
     #[inline(always)]
-    pub fn path(&self) -> Option<PathBuf> {
-        self.0.path.clone()
+    pub fn path(&self) -> &Path {
+        &self.0.path
     }
 
     #[inline(always)]
