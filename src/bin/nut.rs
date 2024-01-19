@@ -1,156 +1,127 @@
 #![allow(clippy::cast_ptr_alignment, clippy::module_inception)]
 
-use clap::{App, Arg, SubCommand};
+use clap::{Args, Parser, Subcommand};
 use hexdump::{hexdump_iter, sanitize_byte};
 use nut::{Bucket, BucketStats, DBBuilder, DB};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 const HOMEPAGE: &str = env!("CARGO_PKG_HOMEPAGE");
 const DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
-fn is_numeric(i: String) -> Result<(), String> {
-    str::parse::<usize>(&i)
-        .map(|_| ())
-        .map_err(|_| "Option must be numeric".to_string())
+fn validate_path(p: &str) -> Result<PathBuf, String> {
+    let path = PathBuf::from(p);
+
+    if path.exists() {
+        Ok(path)
+    } else {
+        Err("Path not exists".to_string())
+    }
 }
 
 fn main() {
-    let path_arg = Arg::with_name("path")
-        .value_name("FILE")
-        .short("p")
-        .long("path")
-        .help("path to database")
-        .required(true)
-        .takes_value(true)
-        .validator(|ref p| {
-            if std::path::Path::new(p).exists() {
-                Ok(())
-            } else {
-                Err("Path not exists".to_string())
-            }
-        });
+    let cli = Cli::parse();
 
-    let id_ard = Arg::with_name("id")
-        .value_name("NUMBER")
-        .short("i")
-        .long("id")
-        .help("id of the page")
-        .takes_value(true)
-        .required(true)
-        .validator(is_numeric);
-
-    let about = format!(
-        "{}
-
-homepage:
-{}",
-        DESCRIPTION, HOMEPAGE,
-    );
-
-    let mut app = App::new("Nut Database")
-        .bin_name("nut")
-        .version(VERSION)
-        .author(AUTHORS)
-        .long_about(&*about)
-        .subcommands(vec![
-		SubCommand::with_name("dump")
-			.about("Dumps hex of the page")
-			.args(&[
-				id_ard.clone(),
-				Arg::with_name("length")
-					.value_name("NUMBER")
-					.short("l")
-					.long("length")
-					.takes_value(true)
-					.validator(is_numeric)
-					.help("print no more than provided length"),
-				path_arg.clone(),
-			]),
-		SubCommand::with_name("info")
-			.about("Prints database info")
-			.args(&[
-				Arg::with_name("check")
-					.short("c")
-					.long("check")
-					.possible_values(&["true", "false"])
-					.default_value("true")
-					.help("run db check"),
-				path_arg.clone(),
-			]),
-		SubCommand::with_name("pages")
-			.about("Prints a table of pages with their type (Meta, Leaf, Branch, Freelist)")
-			.long_about(
-				r#"Prints a table of pages with their type (meta, leaf, branch, freelist).
-Leaf and branch pages will show a key count in the "items" column while the
-freelist will show the number of free pages in the "items" column.
-
-The "overflow" column shows the number of blocks that the page spills over
-into. Normally there is no overflow but large keys and values can cause
-a single page to take up multiple blocks."#,
-			)
-			.args(&[
-				id_ard
-					.clone()
-					.multiple(true)
-					.required(false)
-					.help("if provided, info will be given only on requested ids"),
-				path_arg.clone(),
-			]),
-		SubCommand::with_name("tree")
-			.about("Prints buckets tree")
-			.args(&[
-				path_arg.clone(),
-			]),
-		SubCommand::with_name("check")
-			.about(
-				"Runs an exhaustive check to verify that all pages are accessible or are marked as freed.",
-			)
-			.args(&[path_arg.clone()]),
-	]);
-
-    let matches = app.clone().get_matches();
-
-    let result = match matches.subcommand() {
-        ("dump", Some(args)) => dump(DumpOptions {
-            path: PathBuf::from(args.value_of("path").unwrap()),
-            id: args
-                .value_of("id")
-                .map(str::parse::<usize>)
-                .unwrap()
-                .unwrap(),
-            len: args
-                .value_of("length")
-                .map(str::parse::<u64>)
-                .map(|v| v.unwrap()),
+    let result = match cli.command {
+        Commands::Dump {
+            id,
+            length,
+            path_shim,
+        } => dump(DumpOptions {
+            path: path_shim.path,
+            id,
+            len: length,
         }),
-        ("info", Some(args)) => info(InfoOptions {
-            path: PathBuf::from(args.value_of("path").unwrap()),
-            check: args.value_of("check").unwrap() == "true",
+        Commands::Info { check, path_shim } => info(InfoOptions {
+            path: path_shim.path,
+            check,
         }),
-        ("pages", Some(args)) => pages(PagesOptions {
-            path: PathBuf::from(args.value_of("path").unwrap()),
-            ids: args
-                .values_of("id")
-                .map(|v| v.map(|v| str::parse::<usize>(v).unwrap()).collect()),
+        Commands::Pages { ids, path_shim } => pages(PagesOptions {
+            path: path_shim.path,
+            ids: Some(ids),
         }),
-        ("tree", Some(args)) => tree(TreeOptions {
-            path: PathBuf::from(args.value_of("path").unwrap()),
+        Commands::Tree { path_shim } => tree(TreeOptions {
+            path: path_shim.path,
         }),
-        ("check", Some(args)) => check(CheckOptions {
-            path: PathBuf::from(args.value_of("path").unwrap()),
+        Commands::Check { path_shim } => check(CheckOptions {
+            path: path_shim.path,
         }),
-        _ => {
-            app.print_long_help().unwrap();
-            Ok(())
-        }
     };
+
     if let Err(result) = result {
         eprintln!("Error: {}", result);
         std::process::exit(1);
     };
+}
+
+#[derive(Debug, Parser)]
+#[command(about="Nut Database CLI", author, version, long_about =  format!(
+"{}
+
+homepage:
+{}",
+DESCRIPTION, HOMEPAGE,
+))]
+pub struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Debug, Subcommand)]
+enum Commands {
+    /// Dumps hex of the page
+    Dump {
+        /// id of the page
+        #[arg(short, long)]
+        id: usize,
+
+        /// print no more than provided length
+        #[arg(short, long)]
+        length: Option<u64>,
+
+        #[command(flatten)]
+        path_shim: PathShim,
+    },
+    /// Prints database info
+    Info {
+        /// run db check
+        #[arg(short, long)]
+        check: bool,
+
+        #[command(flatten)]
+        path_shim: PathShim,
+    },
+    /// Prints a table of pages with their type (Meta, Leaf, Branch, Freelist)
+    ///
+    /// Leaf and branch pages will show a key count in the "items" column while the
+    /// freelist will show the number of free pages in the "items" column.
+    /// The "overflow" column shows the number of blocks that the page spills over
+    /// into. Normally there is no overflow but large keys and values can cause
+    ///a single page to take up multiple blocks.
+    Pages {
+        /// if provided, info will be given only on requested ids. takes multiple values
+        #[arg(short, long = "id")]
+        ids: Vec<usize>,
+
+        #[command(flatten)]
+        path_shim: PathShim,
+    },
+    /// Prints buckets tree
+    Tree {
+        #[command(flatten)]
+        path_shim: PathShim,
+    },
+    /// Runs an exhaustive check to verify that all pages are accessible or are marked as freed
+    Check {
+        #[command(flatten)]
+        path_shim: PathShim,
+    },
+}
+#[derive(Debug, Args)]
+struct PathShim {
+    /// path to database
+    #[arg(short, long, value_parser=validate_path)]
+    path: PathBuf,
 }
 
 #[derive(Debug)]
