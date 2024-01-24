@@ -2,8 +2,7 @@ use crate::tx::TxStats;
 use std::ops::{AddAssign, Sub};
 
 /// Stats represents statistics about the database.
-#[derive(Clone, Debug)]
-#[derive(Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Stats {
     // Freelist stats
     /// total number of free pages on the freelist
@@ -24,8 +23,6 @@ pub struct Stats {
     /// global, ongoing stats.
     pub tx_stats: TxStats,
 }
-
-
 
 impl Sub for Stats {
     type Output = Stats;

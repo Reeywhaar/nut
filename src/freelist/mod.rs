@@ -11,8 +11,7 @@ use crate::utils::find_contiguous;
 
 /// freelist represents a list of all pages that are available for allocation.
 /// It also tracks pages that have been freed but are still in use by open transactions.
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub(crate) struct FreeList {
     /// all free and available free page ids
     ids: Vec<PGID>,
@@ -21,8 +20,6 @@ pub(crate) struct FreeList {
     /// fast lookup of all free and pending page ids.
     cache: HashMap<PGID, bool>,
 }
-
-
 
 impl FreeList {
     /// size returns the size of the page after serialization.
