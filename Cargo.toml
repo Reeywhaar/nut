@@ -12,20 +12,20 @@ exclude = ["test_data"]
 name = "nut"
 
 [dependencies]
-fnv = "1.0.6"
+fnv = "1.0.7"
 poolcache = "0.1.1"
-memoffset = "^0.5.4"
+memoffset = "0.9.0"
 fs2 = "0.4.3"
-page_size = "0.4.1"
-memmap = "0.7.0"
-scopeguard = "1.0.0"
-bitflags = "1.0.4"
-either = "1.5.0"
-lock_api = "0.4.7"
+page_size = "0.6.0"
+memmap2 = "0.9.3"
+scopeguard = "1.2.0"
+bitflags = "2.4.2"
+either = "1.9.0"
+lock_api = "0.4.11"
 parking_lot = "0.12.1"
 clap = { version = "4.4.18", features = ["derive"] }
-hexdump = "0.1.0"
-ansi_term = "^0.11"
+hexdump = "0.1.1"
+ansi_term = "0.12.1"
 
 [dev-dependencies]
-rand = "0.6.5"
+rand = "0.8.5"
