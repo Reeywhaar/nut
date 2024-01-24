@@ -33,6 +33,7 @@ pub(crate) const DEFAULT_MAX_BATCH_DELAY: Duration = Duration::from_millis(10000
 
 bitflags! {
     /// Defines type of the page
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct Flags: u16 {
         /// Either branch or bucket page
         const BRANCHES = 0b00001;
