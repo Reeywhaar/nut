@@ -121,7 +121,6 @@ impl Page {
     }
 
     pub(crate) fn byte_size(&self) -> usize {
-        
         let mut size = Self::header_size();
         match self.data() {
             PageData::Branches(b) => {
@@ -188,7 +187,6 @@ impl Page {
     pub(crate) fn branch_page_elements_mut(&mut self) -> &mut [BranchPageElement] {
         unsafe {
             #[allow(invalid_reference_casting)]
-            #[allow(invalid_reference_casting)]
             &mut *(self.branch_page_elements() as *const [BranchPageElement]
                 as *mut [BranchPageElement])
         }
@@ -205,7 +203,6 @@ impl Page {
     /// Retrieves the branch node by index
     pub(crate) fn branch_page_element_mut(&mut self, index: usize) -> &mut BranchPageElement {
         unsafe {
-            #[allow(invalid_reference_casting)]
             #[allow(invalid_reference_casting)]
             &mut *(self.branch_page_element(index) as *const BranchPageElement
                 as *mut BranchPageElement)
@@ -225,7 +222,6 @@ impl Page {
     pub(crate) fn leaf_page_elements_mut(&mut self) -> &mut [LeafPageElement] {
         unsafe {
             #[allow(invalid_reference_casting)]
-            #[allow(invalid_reference_casting)]
             &mut *(self.leaf_page_elements() as *const [LeafPageElement]
                 as *mut [LeafPageElement])
         }
@@ -243,7 +239,6 @@ impl Page {
     pub(crate) fn leaf_page_element_mut(&mut self, index: usize) -> &mut LeafPageElement {
         unsafe {
             #[allow(invalid_reference_casting)]
-            #[allow(invalid_reference_casting)]
             &mut *(self.leaf_page_element(index) as *const LeafPageElement as *mut LeafPageElement)
         }
     }
@@ -260,7 +255,6 @@ impl Page {
     pub(crate) fn meta_mut(&mut self) -> &mut Meta {
         unsafe {
             #[allow(invalid_reference_casting)]
-            #[allow(invalid_reference_casting)]
             &mut *(self.meta() as *const Meta as *mut Meta)
         }
     }
@@ -276,7 +270,6 @@ impl Page {
     /// meta returns a pointer to the freelist section of the page.
     pub(crate) fn freelist_mut(&mut self) -> &mut [PGID] {
         unsafe {
-            #[allow(invalid_reference_casting)]
             #[allow(invalid_reference_casting)]
             &mut *(self.freelist() as *const [PGID] as *mut [PGID])
         }
