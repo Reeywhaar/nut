@@ -57,7 +57,7 @@ fn create_nested_buckets() {
             .is_some());
 
         tx.commit().unwrap();
-        db.path().unwrap()
+        db.path().to_owned()
     };
 
     let db = db_mock().path(path).build().unwrap();
