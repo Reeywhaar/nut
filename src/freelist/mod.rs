@@ -12,6 +12,7 @@ use crate::utils::find_contiguous;
 /// freelist represents a list of all pages that are available for allocation.
 /// It also tracks pages that have been freed but are still in use by open transactions.
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub(crate) struct FreeList {
     /// all free and available free page ids
     ids: Vec<PGID>,
@@ -21,15 +22,7 @@ pub(crate) struct FreeList {
     cache: HashMap<PGID, bool>,
 }
 
-impl Default for FreeList {
-    fn default() -> Self {
-        Self {
-            ids: Vec::new(),
-            pending: HashMap::new(),
-            cache: HashMap::new(),
-        }
-    }
-}
+
 
 impl FreeList {
     /// size returns the size of the page after serialization.
@@ -60,7 +53,7 @@ impl FreeList {
     pub fn get_pgids(&self) -> Vec<PGID> {
         let mut m = Vec::with_capacity(self.count());
         for list in self.pending.values() {
-            m.extend_from_slice(&list);
+            m.extend_from_slice(list);
         }
         m.extend_from_slice(&self.ids);
         m.sort_unstable();
@@ -82,7 +75,7 @@ impl FreeList {
             self.ids.drain(index..index + span as usize);
             // Remove from the free cache.
             for i in 0..span {
-                self.cache.remove(&(pgid as u64 + i));
+                self.cache.remove(&(pgid + i));
             }
             pgid
         } else {
@@ -98,7 +91,7 @@ impl FreeList {
         }
 
         // Free page and all its overflow pages.
-        let ids = self.pending.entry(txid).or_insert_with(Vec::new);
+        let ids = self.pending.entry(txid).or_default();
         let max = p.id + u64::from(p.overflow);
         for id in p.id..=max {
             // Verify that page is not already free.
@@ -131,7 +124,7 @@ impl FreeList {
         }
 
         m.sort_unstable();
-        self.ids = merge_pgids(self.ids.as_slice(), &m.as_slice());
+        self.ids = merge_pgids(self.ids.as_slice(), m.as_slice());
     }
 
     /// release moves all page ids for a transaction id (or older) to the freelist.
@@ -139,7 +132,7 @@ impl FreeList {
         // Remove page ids from cache.
         if let Some(pending) = self.pending.get(&txid) {
             for id in pending {
-                self.cache.remove(&id).unwrap();
+                self.cache.remove(id).unwrap();
             }
         }
 

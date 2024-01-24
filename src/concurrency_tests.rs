@@ -26,7 +26,7 @@ fn perform_read(number_of_threads: usize, number_of_values: usize) {
                 for i in 10..10 + number_of_values {
                     let expected = format!("{}", i * 100000);
                     let key = format!("{}", i);
-                    let value = bucket.get(&key.as_bytes()).unwrap();
+                    let value = bucket.get(key.as_bytes()).unwrap();
                     assert_eq!(expected.as_bytes(), value);
                 }
                 Ok(())

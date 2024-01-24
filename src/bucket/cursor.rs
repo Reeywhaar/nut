@@ -37,13 +37,12 @@ impl<'a, B: Deref<Target = Bucket> + 'a> Cursor<'a, B> {
 
     /// Returns reference to bucket which is cursor created from
     pub(crate) fn bucket(&self) -> &Bucket {
-        &*self.bucket
+        &self.bucket
     }
 
     /// Returns mutable reference to bucket which is cursor created from
     pub(crate) fn bucket_mut(&mut self) -> &mut Bucket {
         unsafe {
-            #[allow(clippy::cast_ref_to_mut)]
             #[allow(invalid_reference_casting)]
             &mut *((&*self.bucket) as *const Bucket as *mut Bucket)
         }
@@ -52,7 +51,7 @@ impl<'a, B: Deref<Target = Bucket> + 'a> Cursor<'a, B> {
     /// Recursively performs a binary search against a given page/node until it finds a given key.
     fn search(&self, key: &[u8], pgid: PGID) -> Result<(), Error> {
         let page_node = self.bucket().page_node(pgid)?;
-        if let Either::Left(ref p) = page_node.upgrade() {
+        if let Either::Left(p) = page_node.upgrade() {
             match p.flags {
                 Flags::BRANCHES => (),
                 Flags::LEAVES => (),
@@ -153,7 +152,7 @@ impl<'a, B: Deref<Target = Bucket> + 'a> Cursor<'a, B> {
     fn nsearch(&self, key: &[u8]) -> Result<(), Error> {
         let mut stack = self.stack.borrow_mut();
         let el_ref = stack.last_mut().unwrap();
-        if let Either::Right(ref n) = el_ref.upgrade() {
+        if let Either::Right(n) = el_ref.upgrade() {
             let index = match n
                 .0
                 .inodes
@@ -435,8 +434,6 @@ impl<'a, B: Deref<Target = Bucket> + 'a> Cursor<'a, B> {
         if el_ref.index >= el_ref.count() {
             item = self.next()?;
         }
-
-        let mut item = item;
 
         if item.key.is_none() {
             return Ok(CursorItem::new_null(None, None));

@@ -68,8 +68,10 @@ fn release() {
 
 #[test]
 fn allocate() {
-    let mut f = FreeList::default();
-    f.ids = vec![3, 4, 5, 6, 7, 9, 12, 13, 18];
+    let mut f = FreeList {
+        ids: vec![3, 4, 5, 6, 7, 9, 12, 13, 18],
+        ..Default::default()
+    };
 
     assert_eq!(3, f.allocate(3));
     assert_eq!(vec![6, 7, 9, 12, 13, 18], f.ids);
@@ -114,8 +116,10 @@ fn read() {
 
 #[test]
 fn write() {
-    let mut fl = FreeList::default();
-    fl.ids = vec![12, 39];
+    let mut fl = FreeList {
+        ids: vec![12, 39],
+        ..Default::default()
+    };
     fl.pending.insert(100, vec![28, 11]);
     fl.pending.insert(101, vec![3]);
 

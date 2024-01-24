@@ -241,7 +241,7 @@ impl Node {
                 }
 
                 let page = tx.allocate((node.size() / db.page_size()) as u64 + 1)?;
-                let mut page = unsafe { &mut *page };
+                let page = unsafe { &mut *page };
 
                 {
                     // Write the node.
@@ -251,7 +251,7 @@ impl Node {
                         panic!("pgid ({}) above high water mark ({})", id, txid)
                     }
                     *node.0.pgid.borrow_mut() = id;
-                    node.write(&mut page);
+                    node.write(page);
                     node.0.spilled.store(true, Ordering::Release);
                 }
 
@@ -411,7 +411,7 @@ impl Node {
                 .append(&mut *target.0.inodes.borrow_mut());
             {
                 let mut parent = self.parent().unwrap();
-                parent.del(&target.0.key.borrow().as_ref().unwrap());
+                parent.del(target.0.key.borrow().as_ref().unwrap());
                 parent.remove_child(&target);
             }
             self.bucket_mut()
@@ -424,7 +424,7 @@ impl Node {
             for pgid in target.0.inodes.borrow().iter().map(|i| i.pgid) {
                 if let Some(child) = self.bucket_mut().unwrap().nodes.borrow_mut().get_mut(&pgid) {
                     let mut parent = child.parent().unwrap();
-                    parent.remove_child(&child);
+                    parent.remove_child(child);
                     *child.0.parent.borrow_mut() = WeakNode::from(&target);
                     parent.0.children.borrow_mut().push(child.clone());
                 }
@@ -437,8 +437,8 @@ impl Node {
                 .append(&mut *self.0.inodes.borrow_mut());
             {
                 let mut parent = self.parent().unwrap();
-                parent.del(&self.0.key.borrow().as_ref().unwrap());
-                parent.remove_child(&self);
+                parent.del(self.0.key.borrow().as_ref().unwrap());
+                parent.remove_child(self);
             }
             self.bucket_mut()
                 .unwrap()
@@ -476,7 +476,7 @@ impl Node {
             let txid = tx.id();
             let page = unsafe { &*tx.page(*self.0.pgid.borrow()).unwrap() };
             let db = tx.db().unwrap();
-            db.0.freelist.write().free(txid, &page).unwrap();
+            db.0.freelist.write().free(txid, page).unwrap();
         }
         *self.0.pgid.borrow_mut() = 0;
     }
@@ -516,7 +516,7 @@ impl Node {
         let mut sz = Page::header_size();
         let elsz = self.page_element_size();
         for ind in &*self.0.inodes.borrow() {
-            sz += elsz + ind.key.len() as usize + ind.value.len();
+            sz += elsz + ind.key.len() + ind.value.len();
         }
         sz
     }
@@ -616,7 +616,7 @@ impl Node {
                 let elem = p.leaf_page_element_mut(i);
                 let el_ptr = elem as *const LeafPageElement as *const u8;
                 elem.pos = unsafe { bptr.sub(el_ptr as usize) } as u32;
-                elem.flags = item.flags as u32;
+                elem.flags = item.flags;
                 elem.ksize = item.key.len() as u32;
                 elem.vsize = item.value.len() as u32;
             } else {

@@ -11,7 +11,7 @@ pub struct BranchPageElement {
     pub pgid: PGID,
 }
 
-impl<'a> BranchPageElement {
+impl BranchPageElement {
     /// binary struct's size (16)
     pub const SIZE: usize = size_of::<BranchPageElement>();
 

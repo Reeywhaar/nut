@@ -21,7 +21,7 @@ fn copy_data_from() {
     let mut page = OwnedPage::new(1024);
     page.flags = Flags::FREELIST;
     let ids: &[PGID] = &[23, 50];
-    page.copy_data_from(PageData::Freelist(&ids));
+    page.copy_data_from(PageData::Freelist(ids));
 
     assert_eq!(page.count, 2);
     match page.data() {

@@ -168,7 +168,7 @@ fn dump(o: DumpOptions) -> Result<(), String> {
             if written > 0 {
                 for line in hexdump_iter(&obuf[..written]) {
                     stdout
-                        .write_all(&line.as_bytes())
+                        .write_all(line.as_bytes())
                         .map_err(|_| "Can't print output")?;
                     stdout
                         .write_all(&newline)
@@ -181,7 +181,7 @@ fn dump(o: DumpOptions) -> Result<(), String> {
         if written == 1024 {
             for line in hexdump_iter(&obuf) {
                 stdout
-                    .write_all(&line.as_bytes())
+                    .write_all(line.as_bytes())
                     .map_err(|_| "Can't print output")?;
                 stdout
                     .write_all(&newline)
@@ -329,14 +329,14 @@ struct TreeOptions {
     path: PathBuf,
 }
 
-fn tree_writer<'a>(
+fn tree_writer(
     indent_level: usize,
-    mut out: &mut std::io::StdoutLock<'a>,
+    mut out: &mut std::io::StdoutLock<'_>,
     key: &[u8],
     bucket: Option<&Bucket>,
 ) -> Result<(), String> {
     if let Some(ubucket) = bucket {
-        let sanitized: String = key.to_vec().into_iter().map(sanitize_byte).collect();
+        let sanitized: String = key.iter().copied().map(sanitize_byte).collect();
         writeln!(
             &mut out,
             "{:<40} {:02X?}",
@@ -348,7 +348,7 @@ fn tree_writer<'a>(
         let buckets = ubucket.buckets();
 
         for b_name in buckets {
-            tree_writer(indent_level + 1, &mut out, &b_name, ubucket.bucket(&b_name))?;
+            tree_writer(indent_level + 1, out, &b_name, ubucket.bucket(&b_name))?;
         }
     };
 
@@ -356,7 +356,7 @@ fn tree_writer<'a>(
 }
 
 fn tree(o: TreeOptions) -> Result<(), String> {
-    let db = DBBuilder::new(&o.path).read_only(true).build()?;
+    let db = DBBuilder::new(o.path).read_only(true).build()?;
     let stdout = std::io::stdout();
     let mut stdout = stdout.lock();
 
@@ -368,7 +368,7 @@ fn tree(o: TreeOptions) -> Result<(), String> {
         let tx = db.begin_tx()?;
         tx.for_each(Box::new(
             |key: &[u8], bucket: Option<&Bucket>| -> Result<(), String> {
-                tree_writer(0, &mut stdout, &key, bucket)?;
+                tree_writer(0, &mut stdout, key, bucket)?;
 
                 Ok(())
             },

@@ -230,6 +230,7 @@ impl Tx {
         self.0.root.try_write().unwrap().delete_bucket(key)
     }
 
+    #[allow(clippy::type_complexity)]
     /// Executes a function for each bucket in the root.
     /// If the provided function returns an error then the iteration is stopped and
     /// the error is returned to the caller.
@@ -264,7 +265,7 @@ impl Tx {
         {
             *page.meta_mut() = self.0.meta.try_read().unwrap().clone();
             page.meta_mut().checksum = page.meta().sum64();
-            w.write_all(&page.buf()).map_err(|e| format!("{}", e))?;
+            w.write_all(page.buf()).map_err(|e| format!("{}", e))?;
             written += page.size();
         }
 
@@ -273,7 +274,7 @@ impl Tx {
             page.id = 1;
             page.meta_mut().txid -= 1;
             page.meta_mut().checksum = page.meta().sum64();
-            w.write_all(&page.buf()).map_err(|e| format!("{}", e))?;
+            w.write_all(page.buf()).map_err(|e| format!("{}", e))?;
             written += page.size();
         }
 
@@ -355,7 +356,7 @@ impl Tx {
             freelist.free(txid as u64, &page)?;
 
             let freelist_size = freelist.size();
-            let page_size = db.page_size() as usize;
+            let page_size = db.page_size();
 
             (freelist_size, page_size)
         };
@@ -373,7 +374,7 @@ impl Tx {
             self.0.meta.try_write().unwrap().freelist = page.id;
 
             // If the high water mark has moved up then attempt to grow the database.
-            if self.pgid() > tx_pgid as u64 {
+            if self.pgid() > tx_pgid {
                 if let Err(e) = db.grow((tx_pgid + 1) * page_size as u64) {
                     self.rollback()?;
                     return Err(e);
@@ -636,7 +637,7 @@ impl Tx {
         let page_size = db.page_size();
         for (id, p) in &pages {
             let size = (p.overflow + 1) as usize * page_size;
-            let offset = *id as u64 * page_size as u64;
+            let offset = *id * page_size as u64;
 
             let buf = unsafe { std::slice::from_raw_parts(p.as_ptr(), size) };
             let cursor = IOCursor::new(buf);
@@ -671,9 +672,9 @@ impl Tx {
     pub(crate) fn write_meta(&mut self) -> Result<(), Error> {
         let mut db = self.db()?;
 
-        let mut buf = vec![0u8; db.page_size() as usize];
-        let mut page = Page::from_buf_mut(&mut buf);
-        self.0.meta.try_write().unwrap().write(&mut page)?;
+        let mut buf = vec![0u8; db.page_size()];
+        let page = Page::from_buf_mut(&mut buf);
+        self.0.meta.try_write().unwrap().write(page)?;
 
         db.write_at(0, IOCursor::new(buf))?;
 
@@ -710,7 +711,7 @@ impl Tx {
         let p = unsafe { &*self.page(pgid).unwrap() };
 
         // Execute function.
-        func(&p, depth);
+        func(p, depth);
 
         // Recursively loop over children.
         let flags = p.flags;

@@ -3,6 +3,7 @@ use std::ops::{AddAssign, Sub};
 
 /// Stats represents statistics about the database.
 #[derive(Clone, Debug)]
+#[derive(Default)]
 pub struct Stats {
     // Freelist stats
     /// total number of free pages on the freelist
@@ -24,19 +25,7 @@ pub struct Stats {
     pub tx_stats: TxStats,
 }
 
-impl Default for Stats {
-    fn default() -> Self {
-        Self {
-            free_page_n: 0,
-            pending_page_n: 0,
-            free_alloc: 0,
-            freelist_in_use: 0,
-            tx_n: 0,
-            open_tx_n: 0,
-            tx_stats: Default::default(),
-        }
-    }
-}
+
 
 impl Sub for Stats {
     type Output = Stats;

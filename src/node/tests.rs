@@ -220,8 +220,8 @@ fn split_big() {
     for i in 1..1000 {
         let key = format!("{:08}", i);
         n.put(
-            &key.as_bytes(),
-            &key.as_bytes(),
+            key.as_bytes(),
+            key.as_bytes(),
             b"0123456701234567".to_vec(),
             0,
             0,

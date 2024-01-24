@@ -49,7 +49,7 @@ impl<'a> From<&ElemRef> for CursorItem<'a> {
         }
         unsafe {
             match el_ref.upgrade() {
-                Either::Left(ref p) => {
+                Either::Left(p) => {
                     let elem = p.leaf_page_element(el_ref.index);
                     Self::new(
                         Some(&*(elem.key() as *const [u8])),
@@ -57,7 +57,7 @@ impl<'a> From<&ElemRef> for CursorItem<'a> {
                         elem.flags,
                     )
                 }
-                Either::Right(ref n) => {
+                Either::Right(n) => {
                     let inode = &n.0.inodes.borrow()[el_ref.index];
                     Self::new(
                         Some(&*(inode.key.as_slice() as *const [u8])),

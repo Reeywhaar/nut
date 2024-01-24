@@ -287,7 +287,7 @@ impl<'a> DB {
         let mut buf = vec![0u8; self.0.page_size * 4];
         for i in 0..=1 {
             let p = self.page_in_buffer(&mut buf, i);
-            p.id = i as u64;
+            p.id = i;
             p.flags = Flags::META;
             let m = p.meta_mut();
             m.magic = MAGIC;
@@ -300,7 +300,7 @@ impl<'a> DB {
                 b
             };
             m.pgid = 4;
-            m.txid = i as u64;
+            m.txid = i;
             m.checksum = m.sum64();
         }
 
@@ -357,10 +357,8 @@ impl<'a> DB {
             .get_ref()
             .unlock()
             .map_err(|_| "Can't unlock db file")?;
-        if self.0.autoremove {
-            if self.0.path.exists() {
-                std::fs::remove_file(&self.0.path).map_err(|_| "Can't remove file")?;
-            }
+        if self.0.autoremove && self.0.path.exists() {
+            std::fs::remove_file(&self.0.path).map_err(|_| "Can't remove file")?;
         }
         Ok(())
     }
@@ -564,6 +562,7 @@ impl<'a> DB {
         handler: Box<dyn Fn(&mut Tx) -> Result<(), String> + Send>,
     ) -> Result<(), Error> {
         let weak_db = WeakDB::from(self);
+        #[allow(clippy::arc_with_non_send_sync)]
         let handler = Arc::new(handler);
         let handler_clone = handler.clone();
 
@@ -643,7 +642,7 @@ impl<'a> DB {
             mmap_opts
                 .offset(0)
                 .len(size as usize)
-                .map(&*file.get_ref())
+                .map(file.get_ref())
                 .map_err(|e| format!("mmap failed: {}", e))?
         };
         *mmap_size = nmmap.len();
@@ -723,13 +722,13 @@ impl<'a> DB {
     /// Retrieves page from mmap
     pub(crate) fn page(&self, id: PGID) -> MappedRwLockReadGuard<Page> {
         let page_size = self.0.page_size;
-        let pos = id as usize * page_size as usize;
+        let pos = id as usize * page_size;
         let mmap = self.0.mmap.read_recursive();
         RwLockReadGuard::map(mmap, |mmap| Page::from_buf(&mmap.as_ref()[pos..]))
     }
 
     fn page_in_buffer<'b>(&'a self, buf: &'b mut [u8], id: PGID) -> &'b mut Page {
-        let page_size = self.0.page_size as usize;
+        let page_size = self.0.page_size;
         let pos = id as usize * page_size;
         let endpos = pos + page_size;
         Page::from_buf_mut(&mut buf[pos..endpos])
@@ -781,13 +780,11 @@ impl<'a> DB {
         let minsz = (p.id + 1 + count) * self.0.page_size as u64;
         let mmap_size = *self.0.mmap_size.lock() as u64;
         if minsz >= mmap_size {
-            if let Err(e) = self.mmap(minsz) {
-                return Err(e);
-            };
+            self.mmap(minsz)?;
         };
 
         // Move the page id high water mark.
-        tx.set_pgid(tx.pgid() + count as u64)?;
+        tx.set_pgid(tx.pgid() + count)?;
 
         Ok(p)
     }

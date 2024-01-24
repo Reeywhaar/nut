@@ -176,7 +176,7 @@ impl Bucket {
         {
             // TODO:
             // if self.tx().unwrap().writable() {
-            let b = unsafe { (&*(value.as_ptr() as *const IBucket)).clone() };
+            let b = unsafe { (*(value.as_ptr() as *const IBucket)).clone() };
             child.bucket = b;
         }
 
@@ -278,7 +278,7 @@ impl Bucket {
         let mut c = self.cursor()?;
         {
             let item = c.seek(key)?;
-            if item.key.as_deref().map(|v| &*v).unwrap() != key {
+            if item.key.unwrap() != key {
                 return Err(Error::BucketNotFound);
             }
             if !item.is_bucket() {
@@ -470,6 +470,7 @@ impl Bucket {
         Ok(())
     }
 
+    #[allow(clippy::type_complexity)]
     /// Executes a function for each key/value pair in a bucket.
     /// If the provided function returns an error then the iteration is stopped and
     /// the error is returned to the caller.
@@ -578,7 +579,7 @@ impl Bucket {
     fn for_each_page<'a>(&self, mut handler: Box<dyn FnMut(&Page, usize) + 'a>) {
         // If we have an inline page then just use that.
         if let Some(ref page) = self.page {
-            handler(&page, 0);
+            handler(page, 0);
             return;
         }
 
@@ -661,7 +662,7 @@ impl Bucket {
 
             // Update parent node.
             let mut c = mutself.cursor()?;
-            let item = c.seek(&name)?;
+            let item = c.seek(name)?;
             if item.key != Some(name.as_slice()) {
                 return Err(format!(
                     "misplaced bucket header: {:?} -> {:?}",
@@ -673,7 +674,7 @@ impl Bucket {
             if !item.is_bucket() {
                 return Err(format!("unexpected bucket header flag: {}", item.flags).into());
             }
-            c.node()?.put(&name, &name, value, 0, Self::FLAG);
+            c.node()?.put(name, name, value, 0, Self::FLAG);
         }
 
         // Ignore if there's not a materialized root node.
@@ -691,7 +692,7 @@ impl Bucket {
             let txpgid = self.tx()?.pgid();
 
             // Update the root node for this bucket.
-            if pgid >= txpgid as u64 {
+            if pgid >= txpgid {
                 panic!("pgid ({}) above high water mark ({})", pgid, txpgid);
             }
 
@@ -744,9 +745,9 @@ impl Bucket {
 
         // Convert byte slice to a fake page and write the root node.
         {
-            let mut page_buf = &mut value[IBucket::SIZE..];
-            let mut page = Page::from_buf_mut(&mut page_buf);
-            n.write(&mut page);
+            let page_buf = &mut value[IBucket::SIZE..];
+            let page = Page::from_buf_mut(page_buf);
+            n.write(page);
         }
 
         value
@@ -783,7 +784,7 @@ impl Bucket {
         }
 
         if let Some(ref page) = self.page {
-            node.read(&page);
+            node.read(page);
         } else {
             unsafe {
                 node.read(&*self.tx().unwrap().page(pgid).unwrap());
@@ -809,7 +810,7 @@ impl Bucket {
         self.for_each_page_node(|p, _| match p {
             Either::Left(p) => {
                 let txid = tx.id();
-                db.0.freelist.write().free(txid, &p).unwrap()
+                db.0.freelist.write().free(txid, p).unwrap()
             }
             Either::Right(n) => n.clone().free(),
         });

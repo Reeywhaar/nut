@@ -8,7 +8,7 @@ pub fn find_contiguous(arr: &[u64], len: usize) -> Option<usize> {
     if arrlen == 0 {
         return None;
     };
-    if arrlen < len as usize {
+    if arrlen < len {
         return None;
     };
     if len == 0 {
@@ -39,7 +39,7 @@ pub unsafe fn to_u8_slice<T: Sized>(p: &T) -> &[u8] {
 
 /// converts any to bytes slice
 pub unsafe fn slice_to_u8_slice<T: Sized>(p: &[T]) -> &[u8] {
-    from_raw_parts(p.as_ptr() as *const u8, size_of::<T>() * p.len())
+    from_raw_parts(p.as_ptr() as *const u8, std::mem::size_of_val(p))
 }
 
 /// converts any to bytes slice
@@ -51,7 +51,7 @@ pub unsafe fn to_u8_slice_mut<T: Sized>(p: &mut T) -> &mut [u8] {
 /// converts any to bytes slice
 #[allow(dead_code)]
 pub unsafe fn slice_to_u8_slice_mut<T: Sized>(p: &mut [T]) -> &mut [u8] {
-    from_raw_parts_mut(p.as_mut_ptr() as *mut u8, size_of::<T>() * p.len())
+    from_raw_parts_mut(p.as_mut_ptr() as *mut u8, std::mem::size_of_val(p))
 }
 
 #[allow(dead_code)]
