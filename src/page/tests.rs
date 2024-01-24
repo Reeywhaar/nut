@@ -4,7 +4,7 @@ use crate::consts::{Flags, PGID};
 #[test]
 fn new() {
     let mut buf = vec![0u8; 256];
-    let mut page = Page::from_buf_mut(&mut buf);
+    let page = Page::from_buf_mut(&mut buf);
     assert_eq!(page.overflow, 0);
     assert_eq!(page.count, 0);
     assert_eq!(page.id, 0);
@@ -73,7 +73,7 @@ fn read_leaf_nodes() {
 #[test]
 fn to_owned() {
     let mut buf = vec![0u8; 1024];
-    let mut page = Page::from_buf_mut(&mut buf);
+    let page = Page::from_buf_mut(&mut buf);
     page.flags = Flags::LEAVES;
     page.count = 2;
     let nodes = unsafe {

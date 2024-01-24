@@ -286,7 +286,7 @@ impl<'a> DB {
     pub(super) fn init(&mut self) -> Result<(), Error> {
         let mut buf = vec![0u8; self.0.page_size * 4];
         for i in 0..=1 {
-            let mut p = self.page_in_buffer(&mut buf, i);
+            let p = self.page_in_buffer(&mut buf, i);
             p.id = i as u64;
             p.flags = Flags::META;
             let m = p.meta_mut();
@@ -304,11 +304,11 @@ impl<'a> DB {
             m.checksum = m.sum64();
         }
 
-        let mut p = self.page_in_buffer(&mut buf, 2);
+        let p = self.page_in_buffer(&mut buf, 2);
         p.id = 2;
         p.flags = Flags::FREELIST;
 
-        let mut p = self.page_in_buffer(&mut buf, 3);
+        let p = self.page_in_buffer(&mut buf, 3);
         p.id = 3;
         p.flags = Flags::LEAVES;
 

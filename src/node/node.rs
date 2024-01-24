@@ -558,7 +558,7 @@ impl Node {
             inodes.insert(index, INode::default());
         }
 
-        let mut inode = &mut inodes[index];
+        let inode = &mut inodes[index];
         inode.key = new_key.to_vec();
         inode.value = value;
         inode.flags = flags;
@@ -613,14 +613,14 @@ impl Node {
             assert!(!item.key.is_empty(), "write: zero-length inode key");
 
             if is_leaf {
-                let mut elem = p.leaf_page_element_mut(i);
+                let elem = p.leaf_page_element_mut(i);
                 let el_ptr = elem as *const LeafPageElement as *const u8;
                 elem.pos = unsafe { bptr.sub(el_ptr as usize) } as u32;
                 elem.flags = item.flags as u32;
                 elem.ksize = item.key.len() as u32;
                 elem.vsize = item.value.len() as u32;
             } else {
-                let mut elem = p.branch_page_element_mut(i);
+                let elem = p.branch_page_element_mut(i);
                 let el_ptr = elem as *const BranchPageElement as *const u8;
                 elem.pos = unsafe { bptr.sub(el_ptr as usize) } as u32;
                 elem.ksize = item.key.len() as u32;
