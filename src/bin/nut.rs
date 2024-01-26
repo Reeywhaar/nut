@@ -38,7 +38,7 @@ fn main() {
         }),
         Commands::Pages { ids, path_shim } => pages(PagesOptions {
             path: path_shim.path,
-            ids: Some(ids),
+            ids,
         }),
         Commands::Tree { path_shim } => tree(TreeOptions {
             path: path_shim.path,
@@ -101,7 +101,7 @@ enum Commands {
     Pages {
         /// if provided, info will be given only on requested ids. takes multiple values
         #[arg(short, long = "id")]
-        ids: Vec<usize>,
+        ids: Option<Vec<usize>>,
 
         #[command(flatten)]
         path_shim: PathShim,
