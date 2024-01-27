@@ -287,16 +287,38 @@ fn pages(o: PagesOptions) -> Result<(), String> {
     writeln!(&mut stdout, "------ ----------- ------- --------")
         .map_err(|_| "Can't write output")?;
 
+    let freed = tx.freed()?;
+
     if let Some(ids) = &o.ids {
         for id in ids {
-            match tx.page_info(*id) {
-                Err(_) => {
-                    writeln!(&mut stdout, "{:>6} error", id).map_err(|_| "Can't write output")?
+            if freed.contains_key(&(*id as u64)) {
+                writeln!(&mut stdout, "{:>6} free", id).map_err(|_| "Can't write output")?;
+            } else {
+                match tx.page_info(*id) {
+                    Err(_) => writeln!(&mut stdout, "{:>6} error", id)
+                        .map_err(|_| "Can't write output")?,
+                    Ok(None) => {
+                        writeln!(&mut stdout, "{:>6} none", id).map_err(|_| "Can't write output")?
+                    }
+                    Ok(Some(p)) => writeln!(
+                        &mut stdout,
+                        "{:>6} {:<11} {:>7} {:>8}",
+                        p.id,
+                        &format!("{:?}", p.ptype),
+                        p.count,
+                        p.overflow_count
+                    )
+                    .map_err(|_| "Can't write output")?,
                 }
-                Ok(None) => {
-                    writeln!(&mut stdout, "{:>6} none", id).map_err(|_| "Can't write output")?
-                }
-                Ok(Some(p)) => writeln!(
+            }
+        }
+    } else {
+        let mut id = 0;
+        while let Some(p) = tx.page_info(id)? {
+            if freed.contains_key(&(id as u64)) {
+                writeln!(&mut stdout, "{:>6} free", id).map_err(|_| "Can't write output")?;
+            } else {
+                writeln!(
                     &mut stdout,
                     "{:>6} {:<11} {:>7} {:>8}",
                     p.id,
@@ -304,21 +326,8 @@ fn pages(o: PagesOptions) -> Result<(), String> {
                     p.count,
                     p.overflow_count
                 )
-                .map_err(|_| "Can't write output")?,
+                .map_err(|_| "Can't write output")?;
             }
-        }
-    } else {
-        let mut id = 0;
-        while let Some(p) = tx.page_info(id)? {
-            writeln!(
-                &mut stdout,
-                "{:>6} {:<11} {:>7} {:>8}",
-                p.id,
-                &format!("{:?}", p.ptype),
-                p.count,
-                p.overflow_count
-            )
-            .map_err(|_| "Can't write output")?;
             id += 1;
         }
     }

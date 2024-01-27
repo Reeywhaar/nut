@@ -503,7 +503,7 @@ impl Tx {
         receiver
     }
 
-    pub(super) fn __check(&self, ch: mpsc::Sender<String>) {
+    pub fn freed(&self) -> Result<HashMap<PGID, bool>, Error> {
         let mut freed = HashMap::<PGID, bool>::new();
         let all_pgids = self
             .db()
@@ -516,10 +516,22 @@ impl Tx {
 
         for id in &all_pgids {
             if freed.contains_key(id) {
-                ch.send(format!("page {}: already freed", id)).unwrap();
+                return Err(format!("page {}: already freed", id).into());
             }
             freed.insert(*id, true);
         }
+
+        Ok(freed)
+    }
+
+    pub(super) fn __check(&self, ch: mpsc::Sender<String>) {
+        let freed = self.freed();
+        if let Err(e) = freed {
+            ch.send(e.to_string()).unwrap();
+            return;
+        }
+
+        let freed = freed.unwrap();
 
         let mut reachable = HashMap::new();
         reachable.insert(0, true);
