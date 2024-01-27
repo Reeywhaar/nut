@@ -278,14 +278,33 @@ fn pages(o: PagesOptions) -> Result<(), String> {
     let stdout = std::io::stdout();
     let mut stdout = stdout.lock();
 
+    let paddings = (6, 15, 7, 8);
+
     writeln!(
         &mut stdout,
         "{}",
-        Green.paint("ID     Type        Count   Overflow")
+        Green.paint(format!(
+            "{:>width1$} {:<width2$} {:>width3$} {:>width4$}",
+            "ID",
+            "Type",
+            "Count",
+            "Overflow",
+            width1 = paddings.0,
+            width2 = paddings.1,
+            width3 = paddings.2,
+            width4 = paddings.3
+        ))
     )
     .map_err(|_| "Can't write output")?;
-    writeln!(&mut stdout, "------ ----------- ------- --------")
-        .map_err(|_| "Can't write output")?;
+    writeln!(
+        &mut stdout,
+        "{} {} {} {}",
+        "-".repeat(paddings.0),
+        "-".repeat(paddings.1),
+        "-".repeat(paddings.2),
+        "-".repeat(paddings.3)
+    )
+    .map_err(|_| "Can't write output")?;
 
     let freed = tx.freed()?;
 
@@ -307,11 +326,15 @@ fn pages(o: PagesOptions) -> Result<(), String> {
                 }
                 Ok(Some(p)) => writeln!(
                     &mut stdout,
-                    "{:>6} {:<11} {:>7} {:>8}",
+                    "{:>width1$} {:<width2$} {:>width3$} {:>width4$}",
                     p.id,
                     &format!("{:?}", p.ptype),
                     p.count,
-                    p.overflow_count
+                    p.overflow_count,
+                    width1 = paddings.0,
+                    width2 = paddings.1,
+                    width3 = paddings.2,
+                    width4 = paddings.3,
                 )
                 .map_err(|_| "Can't write output")?,
             }
