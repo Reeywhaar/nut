@@ -2,7 +2,7 @@
 
 use clap::{Args, Parser, Subcommand};
 use hexdump::{hexdump_iter, sanitize_byte};
-use nut::{Bucket, BucketStats, DBBuilder, DB};
+use nut::{Bucket, BucketStats, DBBuilder, TxGuard, DB};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
@@ -289,36 +289,23 @@ fn pages(o: PagesOptions) -> Result<(), String> {
 
     let freed = tx.freed()?;
 
-    if let Some(ids) = &o.ids {
-        for id in ids {
-            if freed.contains_key(&(*id as u64)) {
-                writeln!(&mut stdout, "{:>6} free", id).map_err(|_| "Can't write output")?;
-            } else {
-                match tx.page_info(*id) {
-                    Err(_) => writeln!(&mut stdout, "{:>6} error", id)
-                        .map_err(|_| "Can't write output")?,
-                    Ok(None) => {
-                        writeln!(&mut stdout, "{:>6} none", id).map_err(|_| "Can't write output")?
-                    }
-                    Ok(Some(p)) => writeln!(
-                        &mut stdout,
-                        "{:>6} {:<11} {:>7} {:>8}",
-                        p.id,
-                        &format!("{:?}", p.ptype),
-                        p.count,
-                        p.overflow_count
-                    )
-                    .map_err(|_| "Can't write output")?,
+    let ids = o
+        .ids
+        .ok_or("Found none when unwrapping ids")
+        .or_else(|_v| get_page_ids(&tx))?;
+
+    for id in ids {
+        if freed.contains_key(&(id as u64)) {
+            writeln!(&mut stdout, "{:>6} free", id).map_err(|_| "Can't write output")?;
+        } else {
+            match tx.page_info(id) {
+                Err(_) => {
+                    writeln!(&mut stdout, "{:>6} error", id).map_err(|_| "Can't write output")?
                 }
-            }
-        }
-    } else {
-        let mut id = 0;
-        while let Some(p) = tx.page_info(id)? {
-            if freed.contains_key(&(id as u64)) {
-                writeln!(&mut stdout, "{:>6} free", id).map_err(|_| "Can't write output")?;
-            } else {
-                writeln!(
+                Ok(None) => {
+                    writeln!(&mut stdout, "{:>6} none", id).map_err(|_| "Can't write output")?
+                }
+                Ok(Some(p)) => writeln!(
                     &mut stdout,
                     "{:>6} {:<11} {:>7} {:>8}",
                     p.id,
@@ -326,12 +313,21 @@ fn pages(o: PagesOptions) -> Result<(), String> {
                     p.count,
                     p.overflow_count
                 )
-                .map_err(|_| "Can't write output")?;
+                .map_err(|_| "Can't write output")?,
             }
-            id += 1;
         }
     }
     Ok(())
+}
+
+fn get_page_ids(tx: &TxGuard) -> Result<Vec<usize>, String> {
+    let mut ids = vec![];
+    let mut id = 0;
+    while let Some(_p) = tx.page_info(id)? {
+        ids.push(id);
+        id += 1;
+    }
+    Ok(ids)
 }
 
 struct TreeOptions {
