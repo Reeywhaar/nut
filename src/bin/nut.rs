@@ -2,7 +2,7 @@
 
 use clap::{Args, Parser, Subcommand};
 use hexdump::{hexdump_iter, sanitize_byte};
-use nut::{Bucket, BucketStats, DBBuilder, TxGuard, DB};
+use nut::{Bucket, BucketStats, DBBuilder, FreedOrPageInfo, TxGuard, DB};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
@@ -313,31 +313,52 @@ fn pages(o: PagesOptions) -> Result<(), String> {
         .ok_or("Found none when unwrapping ids")
         .or_else(|_v| get_page_ids(&tx))?;
 
-    for id in ids {
-        if freed.contains_key(&(id as u64)) {
-            writeln!(&mut stdout, "{:>6} free", id).map_err(|_| "Can't write output")?;
-        } else {
-            match tx.page_info(id) {
-                Err(_) => {
-                    writeln!(&mut stdout, "{:>6} error", id).map_err(|_| "Can't write output")?
-                }
-                Ok(None) => {
-                    writeln!(&mut stdout, "{:>6} none", id).map_err(|_| "Can't write output")?
-                }
-                Ok(Some(p)) => writeln!(
-                    &mut stdout,
-                    "{:>width1$} {:<width2$} {:>width3$} {:>width4$}",
-                    p.id,
-                    &format!("{:?}", p.ptype),
-                    p.count,
-                    p.overflow_count,
-                    width1 = paddings.0,
-                    width2 = paddings.1,
-                    width3 = paddings.2,
-                    width4 = paddings.3,
-                )
-                .map_err(|_| "Can't write output")?,
+    let mut overflowed = vec![];
+    let pages_info = ids
+        .into_iter()
+        .map(|id| -> Result<_, String> {
+            if freed.contains_key(&(id as u64)) {
+                return Ok(Some(FreedOrPageInfo::Freed(id)));
             }
+            if overflowed.contains(&id) {
+                return Ok(None);
+            }
+            let info = tx.page_info(id)?.unwrap();
+            if info.overflow_count > 0 {
+                for i in 1..=info.overflow_count {
+                    if info.overflow_count > 50 {
+                        panic!("OVERFLOW");
+                    };
+                    overflowed.push(id + i);
+                }
+            }
+            Ok(Some(FreedOrPageInfo::PageInfo(info)))
+        })
+        .flat_map(|p| match p {
+            Ok(Some(p)) => vec![Ok(p)],
+            Ok(None) => vec![],
+            Err(e) => vec![Err(e)],
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    for info in pages_info {
+        match info {
+            FreedOrPageInfo::Freed(id) => {
+                writeln!(&mut stdout, "{:>6} free", id).map_err(|_| "Can't write output")?
+            }
+            FreedOrPageInfo::PageInfo(p) => writeln!(
+                &mut stdout,
+                "{:>width1$} {:<width2$} {:>width3$} {:>width4$}",
+                p.id,
+                &format!("{:?}", p.ptype),
+                p.count,
+                p.overflow_count,
+                width1 = paddings.0,
+                width2 = paddings.1,
+                width3 = paddings.2,
+                width4 = paddings.3,
+            )
+            .map_err(|_| "Can't write output")?,
         }
     }
     Ok(())

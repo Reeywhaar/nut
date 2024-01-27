@@ -120,4 +120,5 @@ pub use bucket::{Bucket, BucketStats, Cursor, CursorItem};
 pub use consts::Flags;
 pub use db::{CheckMode, DBBuilder, RWTxGuard, Stats as DBStats, TxGuard, DB};
 pub use errors::Error;
+pub use page::FreedOrPageInfo;
 pub use tx::{Tx, TxStats};

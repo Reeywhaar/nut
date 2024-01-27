@@ -9,6 +9,7 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
 mod branch_page_element;
+mod freed_or_page_info;
 mod leaf_page_element;
 mod page_data;
 mod page_info;
@@ -17,6 +18,7 @@ use crate::consts::{Flags, PGID};
 use crate::meta::Meta;
 
 pub(crate) use branch_page_element::BranchPageElement;
+pub use freed_or_page_info::FreedOrPageInfo;
 pub(crate) use leaf_page_element::LeafPageElement;
 pub(crate) use page_data::PageData;
 pub(crate) use page_info::PageInfo;
