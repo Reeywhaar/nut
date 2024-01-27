@@ -44,6 +44,26 @@ fn open_existing() {
 }
 
 #[test]
+fn open_existing_2() {
+    let db = DBBuilder::new("./test_data/freelist.db")
+        .read_only(true)
+        .build()
+        .unwrap();
+    assert_eq!(db.page_size(), 4096);
+    assert_eq!(db.meta().unwrap().version, 2);
+    assert_eq!(db.meta().unwrap().magic, MAGIC);
+    assert_eq!(db.meta().unwrap().root.root, 3);
+    db.meta().unwrap().validate().unwrap();
+    dbg!(db.meta().unwrap());
+    {
+        let tx = db.begin_tx().unwrap();
+        let buckets = tx.buckets();
+        assert_eq!(buckets.len(), 13);
+        tx.check_sync().unwrap();
+    }
+}
+
+#[test]
 fn panic_while_update() {
     let mut db = db_mock().build().unwrap();
 

@@ -128,7 +128,6 @@ impl<'a> DB {
         let mmap = unsafe {
             memmap2::MmapOptions::new()
                 .offset(0)
-                .len(page_size)
                 .map(&file)
                 .map_err(|e| format!("mmap failed: {}", e))?
         };
