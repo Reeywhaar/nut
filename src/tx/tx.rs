@@ -472,8 +472,13 @@ impl Tx {
             errs.push(err);
         }
 
-        if handle.join().is_err() {
-            errs.push("check thread panicked".to_string());
+        if let Err(e) = handle.join() {
+            let estr = e.downcast_ref::<String>();
+            if let Some(estr) = estr {
+                errs.push(estr.clone());
+            } else {
+                errs.push(format!("check thread panicked: {:?}", e));
+            }
         }
 
         if !errs.is_empty() {
