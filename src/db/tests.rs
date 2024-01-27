@@ -54,7 +54,6 @@ fn open_existing_2() {
     assert_eq!(db.meta().unwrap().magic, MAGIC);
     assert_eq!(db.meta().unwrap().root.root, 3);
     db.meta().unwrap().validate().unwrap();
-    dbg!(db.meta().unwrap());
     {
         let tx = db.begin_tx().unwrap();
         let buckets = tx.buckets();
